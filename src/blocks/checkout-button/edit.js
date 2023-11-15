@@ -20,9 +20,12 @@ import {
 import {
 	PanelBody,
 	BaseControl,
+	CheckboxControl,
 	TextControl,
+	SelectControl,
 	FormTokenField,
 	Button,
+	ButtonGroup,
 	Spinner,
 } from '@wordpress/components';
 import { useState, useEffect } from '@wordpress/element';
@@ -32,6 +35,53 @@ import apiFetch from '@wordpress/api-fetch';
  * Internal dependencies
  */
 import './edit.scss';
+import RedirectAfterSuccess from '../../components/redirect-after-success';
+
+function getVariationName( variation ) {
+	const attributes = [];
+	for ( const attribute of variation.attributes ) {
+		attributes.push( attribute.name + ': ' + attribute.option );
+	}
+	return attributes.join( ', ' );
+}
+
+function getNYP( product ) {
+	return {
+		isNYP: product?.meta_data?.some( meta => meta.key === '_nyp' && meta.value === 'yes' ),
+		suggestedPrice: product?.meta_data?.find( meta => meta.key === '_suggested_price' )?.value,
+		minPrice: product?.meta_data?.find( meta => meta.key === '_min_price' )?.value,
+		maxPrice: product?.meta_data?.find( meta => meta.key === '_maximum_price' )?.value,
+	};
+}
+
+function WidthPanel( { selectedWidth, setAttributes } ) {
+	function handleChange( newWidth ) {
+		// Check if we are toggling the width off
+		const width = selectedWidth === newWidth ? undefined : newWidth;
+
+		// Update attributes.
+		setAttributes( { width } );
+	}
+
+	return (
+		<PanelBody title={ __( 'Width settings', 'newspack-blocks' ) }>
+			<ButtonGroup aria-label={ __( 'Button width', 'newspack-blocks' ) }>
+				{ [ 25, 50, 75, 100 ].map( widthValue => {
+					return (
+						<Button
+							key={ widthValue }
+							size="small"
+							variant={ widthValue === selectedWidth ? 'primary' : undefined }
+							onClick={ () => handleChange( widthValue ) }
+						>
+							{ widthValue }%
+						</Button>
+					);
+				} ) }
+			</ButtonGroup>
+		</PanelBody>
+	);
+}
 
 function ProductControl( props ) {
 	const [ inFlight, setInFlight ] = useState( false );
@@ -106,6 +156,7 @@ function ProductControl( props ) {
 							{ selected.name }
 						</Button>
 					</BaseControl>
+					{ props.children }
 				</>
 			) : (
 				<>
@@ -135,21 +186,47 @@ function ProductControl( props ) {
 
 function CheckoutButtonEdit( props ) {
 	const { attributes, setAttributes, className } = props;
-	const { placeholder, style, text, product, price } = attributes;
+	const { placeholder, style, text, product, price, variation, width } = attributes;
 
+	const [ productData, setProductData ] = useState( {} );
+	const [ variations, setVariations ] = useState( [] );
 	const [ nyp, setNYP ] = useState( false );
+
 	function handleProduct( data ) {
-		const _nyp = {
-			isNYP: data?.meta_data?.some( meta => meta.key === '_nyp' && meta.value === 'yes' ),
-			suggestedPrice: data?.meta_data?.find( meta => meta.key === '_suggested_price' )?.value,
-			minPrice: data?.meta_data?.find( meta => meta.key === '_min_price' )?.value,
-			maxPrice: data?.meta_data?.find( meta => meta.key === '_maximum_price' )?.value,
-		};
-		setNYP( _nyp );
-		if ( ! price ) {
-			setAttributes( { price: _nyp?.suggestedPrice } );
+		setProductData( data );
+
+		// Handle product variation data.
+		if ( data?.variations?.length ) {
+			setAttributes( { is_variable: true } );
+			apiFetch( { path: `/wc/v2/products/${ data.id }/variations?per_page=100` } )
+				.then( res => setVariations( res ) )
+				.catch( () => setVariations( [] ) );
+		} else {
+			setAttributes( { is_variable: false } );
+			setVariations( [] );
+		}
+
+		// Handle NYP data.
+		if ( ! variation ) {
+			setNYP( getNYP( data ) );
 		}
 	}
+
+	useEffect( () => {
+		if ( variation ) {
+			apiFetch( { path: `/wc/v2/products/${ product }/variations/${ variation }` } )
+				.then( res => setNYP( getNYP( res ) ) )
+				.catch( () => setNYP( {} ) );
+		} else {
+			setNYP( getNYP( productData ) );
+		}
+	}, [ variation ] );
+
+	useEffect( () => {
+		if ( ! price && nyp?.suggestedPrice ) {
+			setAttributes( { price: nyp.suggestedPrice } );
+		}
+	}, [ nyp ] );
 
 	function setButtonText( newText ) {
 		// Remove anchor tags from button text content.
@@ -167,6 +244,7 @@ function CheckoutButtonEdit( props ) {
 				className={ classnames( blockProps.className, {
 					[ `wp-block-button` ]: true,
 					[ `has-custom-font-size` ]: blockProps.style.fontSize,
+					[ `has-custom-width wp-block-button__width-${ width }` ]: width,
 				} ) }
 			>
 				<RichText
@@ -200,9 +278,53 @@ function CheckoutButtonEdit( props ) {
 					<ProductControl
 						value={ product }
 						price={ price }
-						onChange={ value => setAttributes( { product: value } ) }
+						onChange={ value => setAttributes( { product: value, variation: '', price: '' } ) }
 						onProduct={ handleProduct }
-					/>
+					>
+						{ productData?.variations?.length > 0 && (
+							<>
+								<CheckboxControl
+									label={ __(
+										'Allow the reader to select the variation before checkout.',
+										'newspack-blocks'
+									) }
+									checked={ ! variation }
+									onChange={ value =>
+										setAttributes( {
+											variation: value ? '' : variations[ 0 ].id.toString(),
+											price: '',
+										} )
+									}
+								/>
+								{ variations.length ? (
+									<SelectControl
+										label={ __( 'Variation', 'newspack-blocks' ) }
+										help={ __(
+											'Select the product variation to be added to cart.',
+											'newspack-blocks'
+										) }
+										value={ variation }
+										disabled={ ! variation }
+										options={ [
+											{ label: '--', value: '' },
+											...variations.map( item => ( {
+												label: getVariationName( item ),
+												value: item.id,
+											} ) ),
+										] }
+										onChange={ value =>
+											setAttributes( { variation: value.toString(), price: '' } )
+										}
+									/>
+								) : (
+									<Spinner />
+								) }
+							</>
+						) }
+					</ProductControl>
+				</PanelBody>
+				<PanelBody title={ __( 'After purchase', 'newspack-blocks' ) }>
+					<RedirectAfterSuccess setAttributes={ setAttributes } attributes={ attributes } />
 				</PanelBody>
 				{ nyp?.isNYP && (
 					<PanelBody title={ __( 'Name Your Price', 'newspack-blocks' ) }>
@@ -239,6 +361,9 @@ function CheckoutButtonEdit( props ) {
 						/>
 					</PanelBody>
 				) }
+			</InspectorControls>
+			<InspectorControls>
+				<WidthPanel selectedWidth={ width } setAttributes={ setAttributes } />
 			</InspectorControls>
 		</>
 	);

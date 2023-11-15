@@ -23,16 +23,20 @@ call_user_func(
 		if ( $attributes['showEmail'] && ! empty( $author['email'] ) ) {
 			$social_links['email'] = $author['email'];
 		}
-		if ( $attributes['shownewspack_phone_number'] && ! empty( $author['newspack_phone_number'] ) ) {
-			$social_links['newspack_phone_number'] = $author['newspack_phone_number'];
+		if ( class_exists( '\Newspack\Authors_Custom_Fields' ) ) {
+			if ( $attributes['shownewspack_phone_number'] && ! empty( $author['newspack_phone_number'] ) ) {
+				$social_links['newspack_phone_number'] = $author['newspack_phone_number'];
+			}
 		}
 
 		$employment_values = [];
-		if ( $attributes['shownewspack_role'] && ! empty( $author['newspack_role'] ) ) {
-			$employment_values[] = $author['newspack_role'];
-		}
-		if ( $attributes['shownewspack_employer'] && ! empty( $author['newspack_employer'] ) ) {
-			$employment_values[] = $author['newspack_employer'];
+		if ( class_exists( '\Newspack\Authors_Custom_Fields' ) ) {
+			if ( $attributes['shownewspack_role'] && ! empty( $author['newspack_role'] ) ) {
+				$employment_values[] = $author['newspack_role'];
+			}
+			if ( $attributes['shownewspack_employer'] && ! empty( $author['newspack_employer'] ) ) {
+				$employment_values[] = $author['newspack_employer'];
+			}
 		}
 		$employment = implode( ', ', $employment_values );
 
@@ -53,25 +57,20 @@ call_user_func(
 			<?php if ( $attributes['showAvatar'] && isset( $author['avatar'] ) ) : ?>
 				<div class="wp-block-newspack-blocks-author-profile__avatar">
 					<figure style="border-radius: <?php echo esc_attr( $attributes['avatarBorderRadius'] ); ?>; height: <?php echo esc_attr( $attributes['avatarSize'] ); ?>px; width: <?php echo esc_attr( $attributes['avatarSize'] ); ?>px;">
+					<?php if ( $show_archive_link ) : ?>
+						<a href="<?php echo esc_url( $author['url'] ); ?>">
 						<?php
-						echo wp_kses(
-							$author['avatar'],
-							[
-								'img' => [
-									'alt'      => true,
-									'class'    => true,
-									'data-*'   => true,
-									'decoding' => true,
-									'height'   => true,
-									'loading'  => true,
-									'sizes'    => true,
-									'src'      => true,
-									'srcset'   => true,
-									'width'    => true,
-								],
-							]
-						);
-						?>
+					endif;
+
+					echo wp_kses(
+						$author['avatar'],
+						Newspack_Blocks::get_sanitized_image_attributes()
+					);
+
+				if ( $show_archive_link ) :
+					?>
+						</a>
+					<?php endif; ?>
 					</figure>
 				</div>
 			<?php endif; ?>
@@ -86,11 +85,17 @@ call_user_func(
 					<?php endif; ?>
 				</h3>
 
-				<?php if ( $attributes['shownewspack_job_title'] && ! empty( $author['newspack_job_title'] ) ) : ?>
-					<p class="wp-block-newspack-blocks-author-profile__job-title">
-						<?php echo esc_html( $author['newspack_job_title'] ); ?>
-					</p>
-				<?php endif; ?>
+				<?php
+				if ( class_exists( '\Newspack\Authors_Custom_Fields' ) ) :
+					if ( $attributes['shownewspack_job_title'] && ! empty( $author['newspack_job_title'] ) ) :
+						?>
+						<p class="wp-block-newspack-blocks-author-profile__job-title">
+							<?php echo esc_html( $author['newspack_job_title'] ); ?>
+						</p>
+						<?php
+					endif;
+				endif;
+				?>
 				<?php if ( ! empty( $employment ) ) : ?>
 					<p class="wp-block-newspack-blocks-author-profile__employment">
 						<?php echo esc_html( $employment ); ?>

@@ -16,7 +16,8 @@ import {
 } from '@wordpress/block-editor';
 
 export default function save( { attributes, className } ) {
-	const { textAlign, fontSize, style, text, product, price } = attributes;
+	const { textAlign, fontSize, style, text, product, price, variation, is_variable, width } =
+		attributes;
 
 	if ( ! text || ! product ) {
 		return null;
@@ -44,6 +45,7 @@ export default function save( { attributes, className } ) {
 
 	const wrapperClasses = classnames( className, {
 		[ `has-custom-font-size` ]: fontSize || style?.typography?.fontSize,
+		[ `has-custom-width wp-block-button__width-${ width }` ]: width,
 	} );
 
 	return (
@@ -57,7 +59,32 @@ export default function save( { attributes, className } ) {
 				/>
 				<input type="hidden" name="product_id" value={ product } />
 				<input type="hidden" name="newspack_checkout" value="1" />
+
 				{ price && <input type="hidden" name="price" value={ price } /> }
+				{ variation && <input type="hidden" name="variation_id" value={ variation } /> }
+				{ is_variable && <input type="hidden" name="is_variable" value="1" /> }
+
+				{ attributes.afterSuccessBehavior && (
+					<input
+						type="hidden"
+						name="after_success_behavior"
+						value={ attributes.afterSuccessBehavior }
+					/>
+				) }
+				{ attributes.afterSuccessButtonLabel && (
+					<input
+						type="hidden"
+						name="after_success_button_label"
+						value={ attributes.afterSuccessButtonLabel }
+					/>
+				) }
+				{ attributes.afterSuccessBehavior && (
+					<input
+						type="hidden"
+						name="after_success_url"
+						value={ attributes.afterSuccessURL || '' }
+					/>
+				) }
 			</form>
 		</div>
 	);

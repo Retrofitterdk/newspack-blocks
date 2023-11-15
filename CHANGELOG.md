@@ -1,3 +1,342 @@
+# [2.1.0](https://github.com/Automattic/newspack-blocks/compare/v2.0.0...v2.1.0) (2023-11-13)
+
+
+### Bug Fixes
+
+* **homepage-posts:** change copy for deduplication block option ([#1578](https://github.com/Automattic/newspack-blocks/issues/1578)) ([dff89a0](https://github.com/Automattic/newspack-blocks/commit/dff89a040e45109eaa0ae04248cb41f2d6543aca))
+* **modal-checkout:** add id attributes to hidden inputs ([90f077c](https://github.com/Automattic/newspack-blocks/commit/90f077ce49c164014e7779140e207a1278afda3e))
+* **modal-checkout:** place order button width ([9b1b04e](https://github.com/Automattic/newspack-blocks/commit/9b1b04e6c5b5ec7931c69eef859b93397735291f)), closes [#1572](https://github.com/Automattic/newspack-blocks/issues/1572) [#1586](https://github.com/Automattic/newspack-blocks/issues/1586)
+
+
+### Features
+
+* **donate-block:** changes to button-after-success  ([#1571](https://github.com/Automattic/newspack-blocks/issues/1571)) ([ac1c6a6](https://github.com/Automattic/newspack-blocks/commit/ac1c6a63f028f6cafa1e5cd852520ebf6ce75845))
+* expose is_modal_checkout method ([4315730](https://github.com/Automattic/newspack-blocks/commit/43157303d800e1447088c40f283d670c9fc6682e))
+* **modal-checkout:** dequeue WC styles ([#1572](https://github.com/Automattic/newspack-blocks/issues/1572)) ([9aa0039](https://github.com/Automattic/newspack-blocks/commit/9aa003954bb5676d009f0ef60765a82c9ec811d9))
+* **modal-checkout:** handle non-redirect-based flow (e.g. Apple Pay) ([#1573](https://github.com/Automattic/newspack-blocks/issues/1573)) ([671b551](https://github.com/Automattic/newspack-blocks/commit/671b551bfedd4724fc85005e21387b1ef462c97c))
+* **modal-checkout:** update "place order" text to "donate now" ([#1591](https://github.com/Automattic/newspack-blocks/issues/1591)) ([63fc202](https://github.com/Automattic/newspack-blocks/commit/63fc20204b95d9213e99481edd1b4549f011c448))
+
+# [2.1.0-alpha.4](https://github.com/Automattic/newspack-blocks/compare/v2.1.0-alpha.3...v2.1.0-alpha.4) (2023-11-10)
+
+
+### Features
+
+* **modal-checkout:** update "place order" text to "donate now" ([#1591](https://github.com/Automattic/newspack-blocks/issues/1591)) ([63fc202](https://github.com/Automattic/newspack-blocks/commit/63fc20204b95d9213e99481edd1b4549f011c448))
+
+# [2.1.0-alpha.3](https://github.com/Automattic/newspack-blocks/compare/v2.1.0-alpha.2...v2.1.0-alpha.3) (2023-11-08)
+
+
+### Bug Fixes
+
+* **modal-checkout:** place order button width ([9b1b04e](https://github.com/Automattic/newspack-blocks/commit/9b1b04e6c5b5ec7931c69eef859b93397735291f)), closes [#1572](https://github.com/Automattic/newspack-blocks/issues/1572) [#1586](https://github.com/Automattic/newspack-blocks/issues/1586)
+
+# [2.1.0-alpha.2](https://github.com/Automattic/newspack-blocks/compare/v2.1.0-alpha.1...v2.1.0-alpha.2) (2023-11-03)
+
+
+### Bug Fixes
+
+* **homepage-posts:** change copy for deduplication block option ([#1578](https://github.com/Automattic/newspack-blocks/issues/1578)) ([dff89a0](https://github.com/Automattic/newspack-blocks/commit/dff89a040e45109eaa0ae04248cb41f2d6543aca))
+* **modal-checkout:** add id attributes to hidden inputs ([90f077c](https://github.com/Automattic/newspack-blocks/commit/90f077ce49c164014e7779140e207a1278afda3e))
+
+
+### Features
+
+* expose is_modal_checkout method ([4315730](https://github.com/Automattic/newspack-blocks/commit/43157303d800e1447088c40f283d670c9fc6682e))
+* **modal-checkout:** dequeue WC styles ([#1572](https://github.com/Automattic/newspack-blocks/issues/1572)) ([9aa0039](https://github.com/Automattic/newspack-blocks/commit/9aa003954bb5676d009f0ef60765a82c9ec811d9))
+* **modal-checkout:** handle non-redirect-based flow (e.g. Apple Pay) ([#1573](https://github.com/Automattic/newspack-blocks/issues/1573)) ([671b551](https://github.com/Automattic/newspack-blocks/commit/671b551bfedd4724fc85005e21387b1ef462c97c))
+
+# [2.1.0-alpha.1](https://github.com/Automattic/newspack-blocks/compare/v2.0.0...v2.1.0-alpha.1) (2023-10-31)
+
+
+### Features
+
+* **donate-block:** changes to button-after-success  ([#1571](https://github.com/Automattic/newspack-blocks/issues/1571)) ([ac1c6a6](https://github.com/Automattic/newspack-blocks/commit/ac1c6a63f028f6cafa1e5cd852520ebf6ce75845))
+
+# [2.0.0](https://github.com/Automattic/newspack-blocks/compare/v1.75.6...v2.0.0) (2023-10-31)
+
+
+### Bug Fixes
+
+* **donate:** allow "once" in tiers-based layout ([ad7268a](https://github.com/Automattic/newspack-blocks/commit/ad7268a320b70a85189cc36055744c3b6aca712f))
+* **homepage-posts:** check existing "specific posts" recursively for deduplication ([#1541](https://github.com/Automattic/newspack-blocks/issues/1541)) ([9755e40](https://github.com/Automattic/newspack-blocks/commit/9755e4090ce645c56ff26183684a07503c92fc65))
+* newspack.pub > newspack.com ([#1552](https://github.com/Automattic/newspack-blocks/issues/1552)) ([343b80b](https://github.com/Automattic/newspack-blocks/commit/343b80b49ac5516cb8ca877b1ca4a6ce6bcaaedf))
+* update WC's variation methods ([860f9fa](https://github.com/Automattic/newspack-blocks/commit/860f9fa2c8b5cda48c9310c958abcf8a3567d5ad))
+
+
+### Features
+
+* add option for a button after checkout ([#1521](https://github.com/Automattic/newspack-blocks/issues/1521)) ([bdfb3c2](https://github.com/Automattic/newspack-blocks/commit/bdfb3c2cceeb52097494884935546655a4a1650e))
+* **homepage-posts:** support deduplication toggling ([#1543](https://github.com/Automattic/newspack-blocks/issues/1543)) ([6acc719](https://github.com/Automattic/newspack-blocks/commit/6acc71959a28d213e1f9064a28a84ebeda44f636))
+* **modal checkout:** post-checkout newsletter signup ([#1561](https://github.com/Automattic/newspack-blocks/issues/1561)) ([092007a](https://github.com/Automattic/newspack-blocks/commit/092007a59ed89ce8ea3ef309851c26fde88b7e9f))
+* **modal-checkout:** implement ras overlay ([#1562](https://github.com/Automattic/newspack-blocks/issues/1562)) ([8270c9b](https://github.com/Automattic/newspack-blocks/commit/8270c9be4dc513ec317c0c256063cf12c936a0a7))
+* remove AMP compatibility ([27ecf88](https://github.com/Automattic/newspack-blocks/commit/27ecf88abecaa935ec931df397c340cba19de978))
+
+
+### BREAKING CHANGES
+
+* AMP will not be supported anymore by this plugin.
+
+# [2.0.0-alpha.3](https://github.com/Automattic/newspack-blocks/compare/v2.0.0-alpha.2...v2.0.0-alpha.3) (2023-10-20)
+
+
+### Bug Fixes
+
+* update WC's variation methods ([860f9fa](https://github.com/Automattic/newspack-blocks/commit/860f9fa2c8b5cda48c9310c958abcf8a3567d5ad))
+
+
+### Features
+
+* **modal checkout:** post-checkout newsletter signup ([#1561](https://github.com/Automattic/newspack-blocks/issues/1561)) ([092007a](https://github.com/Automattic/newspack-blocks/commit/092007a59ed89ce8ea3ef309851c26fde88b7e9f))
+* **modal-checkout:** implement ras overlay ([#1562](https://github.com/Automattic/newspack-blocks/issues/1562)) ([8270c9b](https://github.com/Automattic/newspack-blocks/commit/8270c9be4dc513ec317c0c256063cf12c936a0a7))
+
+# [2.0.0-alpha.2](https://github.com/Automattic/newspack-blocks/compare/v2.0.0-alpha.1...v2.0.0-alpha.2) (2023-10-19)
+
+
+### Bug Fixes
+
+* hide WC's login prompt ([124fee7](https://github.com/Automattic/newspack-blocks/commit/124fee794e1e81490d95b822e132841e720bedf9))
+* **modal-checkout:** remove login prompt from initial flow ([4a8d48f](https://github.com/Automattic/newspack-blocks/commit/4a8d48f05b5d15760c8cf7365ed50d90ae22c639)), closes [/github.com/Automattic/newspack-blocks/pull/1550#issuecomment-1755996086](https://github.com//github.com/Automattic/newspack-blocks/pull/1550/issues/issuecomment-1755996086)
+
+## [1.75.6](https://github.com/Automattic/newspack-blocks/compare/v1.75.5...v1.75.6) (2023-10-19)
+
+
+### Bug Fixes
+
+* hide WC's login prompt ([124fee7](https://github.com/Automattic/newspack-blocks/commit/124fee794e1e81490d95b822e132841e720bedf9))
+* **modal-checkout:** remove login prompt from initial flow ([4a8d48f](https://github.com/Automattic/newspack-blocks/commit/4a8d48f05b5d15760c8cf7365ed50d90ae22c639)), closes [/github.com/Automattic/newspack-blocks/pull/1550#issuecomment-1755996086](https://github.com//github.com/Automattic/newspack-blocks/pull/1550/issues/issuecomment-1755996086)
+
+## [1.75.5](https://github.com/Automattic/newspack-blocks/compare/v1.75.4...v1.75.5) (2023-10-12)
+
+
+### Bug Fixes
+
+* always show email address for order summaries ([#1554](https://github.com/Automattic/newspack-blocks/issues/1554)) ([33952d1](https://github.com/Automattic/newspack-blocks/commit/33952d1dd8a879d26566b09c4cc3b8f132d54014))
+
+## [1.75.4](https://github.com/Automattic/newspack-blocks/compare/v1.75.3...v1.75.4) (2023-10-10)
+
+
+### Bug Fixes
+
+* match thankyou template when using existing customer email ([#1550](https://github.com/Automattic/newspack-blocks/issues/1550)) ([4b0dbf2](https://github.com/Automattic/newspack-blocks/commit/4b0dbf29a98aa7b95b0cda30e4bd03c3ea31285b))
+
+## [1.75.3](https://github.com/Automattic/newspack-blocks/compare/v1.75.2...v1.75.3) (2023-10-10)
+
+
+### Bug Fixes
+
+* **donate:** reset "other" value when switching tiers ([#1549](https://github.com/Automattic/newspack-blocks/issues/1549)) ([844505f](https://github.com/Automattic/newspack-blocks/commit/844505fdefb445e4d68b5a1df5b980d4eae21e0e))
+
+## [1.75.2](https://github.com/Automattic/newspack-blocks/compare/v1.75.1...v1.75.2) (2023-10-04)
+
+
+### Bug Fixes
+
+* allow order details wrapper to render ([#1547](https://github.com/Automattic/newspack-blocks/issues/1547)) ([b76f196](https://github.com/Automattic/newspack-blocks/commit/b76f196dc4b73d881237c3c015d60db00ee49877))
+
+## [1.75.1](https://github.com/Automattic/newspack-blocks/compare/v1.75.0...v1.75.1) (2023-09-28)
+
+
+### Bug Fixes
+
+* **checkout-button:** handle 10+ product variations ([#1536](https://github.com/Automattic/newspack-blocks/issues/1536)) ([5df5065](https://github.com/Automattic/newspack-blocks/commit/5df5065011d6779a689358844212628757b6b5b9))
+* query for CAP terms ([#1535](https://github.com/Automattic/newspack-blocks/issues/1535)) ([49406b9](https://github.com/Automattic/newspack-blocks/commit/49406b9bf1075897939cad2e4c30f34efcf841da))
+
+# [1.75.0](https://github.com/Automattic/newspack-blocks/compare/v1.74.2...v1.75.0) (2023-09-25)
+
+
+### Features
+
+* add category filter for the categories in the blocks ([#1528](https://github.com/Automattic/newspack-blocks/issues/1528)) ([ebbfce9](https://github.com/Automattic/newspack-blocks/commit/ebbfce99dd78521fe5624be81df43c3ba3f8c731))
+
+# [1.75.0-alpha.3](https://github.com/Automattic/newspack-blocks/compare/v1.75.0-alpha.2...v1.75.0-alpha.3) (2023-09-19)
+
+
+### Bug Fixes
+
+* undefined variable error ([#1534](https://github.com/Automattic/newspack-blocks/issues/1534)) ([b0ed7f9](https://github.com/Automattic/newspack-blocks/commit/b0ed7f911982f914678c466c07bc5f0659aaca86))
+
+## [1.74.2](https://github.com/Automattic/newspack-blocks/compare/v1.74.1...v1.74.2) (2023-09-19)
+
+
+### Bug Fixes
+
+* undefined variable error ([#1534](https://github.com/Automattic/newspack-blocks/issues/1534)) ([b0ed7f9](https://github.com/Automattic/newspack-blocks/commit/b0ed7f911982f914678c466c07bc5f0659aaca86))
+
+## [1.74.1](https://github.com/Automattic/newspack-blocks/compare/v1.74.0...v1.74.1) (2023-09-18)
+
+
+### Bug Fixes
+
+* harden usage and output of attribute values ([#1530](https://github.com/Automattic/newspack-blocks/issues/1530)) ([c157395](https://github.com/Automattic/newspack-blocks/commit/c15739539d73884b36284e9d1c2eb854202269f8))
+
+# [1.74.0](https://github.com/Automattic/newspack-blocks/compare/v1.73.0...v1.74.0) (2023-08-24)
+
+
+### Bug Fixes
+
+* make sure carousels without images aren't collapsed ([#1511](https://github.com/Automattic/newspack-blocks/issues/1511)) ([ee8c1cd](https://github.com/Automattic/newspack-blocks/commit/ee8c1cd8f181b97d2795ec6c6aa69283cf4067a9))
+* reduce post carousel font size for 5-6 slides ([#1510](https://github.com/Automattic/newspack-blocks/issues/1510)) ([daabad4](https://github.com/Automattic/newspack-blocks/commit/daabad4635925bb5e1a432102b65149f3b9ec71a))
+* support account creation on modal checkout ([#1516](https://github.com/Automattic/newspack-blocks/issues/1516)) ([51ae19d](https://github.com/Automattic/newspack-blocks/commit/51ae19d30f7b60428ebc293189e18d8a4abf5b76))
+
+
+### Features
+
+* Merge pull request [#1509](https://github.com/Automattic/newspack-blocks/issues/1509) from Automattic/master ([1280d07](https://github.com/Automattic/newspack-blocks/commit/1280d073b7ff12af84c7dc9907a80918e778038a))
+
+# [1.74.0-alpha.2](https://github.com/Automattic/newspack-blocks/compare/v1.74.0-alpha.1...v1.74.0-alpha.2) (2023-08-24)
+
+
+### Bug Fixes
+
+* make sure carousels without images aren't collapsed ([#1511](https://github.com/Automattic/newspack-blocks/issues/1511)) ([ee8c1cd](https://github.com/Automattic/newspack-blocks/commit/ee8c1cd8f181b97d2795ec6c6aa69283cf4067a9))
+* reduce post carousel font size for 5-6 slides ([#1510](https://github.com/Automattic/newspack-blocks/issues/1510)) ([daabad4](https://github.com/Automattic/newspack-blocks/commit/daabad4635925bb5e1a432102b65149f3b9ec71a))
+* support account creation on modal checkout ([#1516](https://github.com/Automattic/newspack-blocks/issues/1516)) ([51ae19d](https://github.com/Automattic/newspack-blocks/commit/51ae19d30f7b60428ebc293189e18d8a4abf5b76))
+
+# [1.74.0-alpha.1](https://github.com/Automattic/newspack-blocks/compare/v1.73.0...v1.74.0-alpha.1) (2023-08-17)
+
+
+### Features
+
+* Merge pull request [#1509](https://github.com/Automattic/newspack-blocks/issues/1509) from Automattic/master ([1280d07](https://github.com/Automattic/newspack-blocks/commit/1280d073b7ff12af84c7dc9907a80918e778038a))
+
+# [1.73.0](https://github.com/Automattic/newspack-blocks/compare/v1.72.2...v1.73.0) (2023-07-17)
+
+
+### Features
+
+* add updated translation files ([#1486](https://github.com/Automattic/newspack-blocks/issues/1486)) ([3a44410](https://github.com/Automattic/newspack-blocks/commit/3a44410e43fcc00510a317e527e2acf782dac4d1))
+* allow Homepage Posts and Carousel blocks to include subcategories ([#1482](https://github.com/Automattic/newspack-blocks/issues/1482)) ([faa8734](https://github.com/Automattic/newspack-blocks/commit/faa87346869dce0503b269c23f453b08cdd5724f))
+* **modal-checkout:** render order details under different conditions ([#1485](https://github.com/Automattic/newspack-blocks/issues/1485)) ([ae62734](https://github.com/Automattic/newspack-blocks/commit/ae62734ee8ca769b23d14a2cb5067fb87dea37e7))
+
+# [1.73.0-alpha.3](https://github.com/Automattic/newspack-blocks/compare/v1.73.0-alpha.2...v1.73.0-alpha.3) (2023-07-17)
+
+
+### Bug Fixes
+
+* only show Additional Fields panel when using Stripe platform ([#1499](https://github.com/Automattic/newspack-blocks/issues/1499)) ([1a08513](https://github.com/Automattic/newspack-blocks/commit/1a085131f881ac62d2ac4879298c3a47d86df684))
+
+## [1.72.2](https://github.com/Automattic/newspack-blocks/compare/v1.72.1...v1.72.2) (2023-07-17)
+
+
+### Bug Fixes
+
+* only show Additional Fields panel when using Stripe platform ([#1499](https://github.com/Automattic/newspack-blocks/issues/1499)) ([1a08513](https://github.com/Automattic/newspack-blocks/commit/1a085131f881ac62d2ac4879298c3a47d86df684))
+
+## [1.72.1](https://github.com/Automattic/newspack-blocks/compare/v1.72.0...v1.72.1) (2023-07-13)
+
+
+### Bug Fixes
+
+* **post-carousel:** set aspect ratio on init ([#1497](https://github.com/Automattic/newspack-blocks/issues/1497)) ([8a48982](https://github.com/Automattic/newspack-blocks/commit/8a489829dbe7882210b211cbde109d930d4e770b))
+
+# [1.72.0](https://github.com/Automattic/newspack-blocks/compare/v1.71.0...v1.72.0) (2023-07-03)
+
+
+### Bug Fixes
+
+* **donate-block:** allow spaces in button label ([#1479](https://github.com/Automattic/newspack-blocks/issues/1479)) ([96adc82](https://github.com/Automattic/newspack-blocks/commit/96adc822cb92201298a53a05df2867d31a6a4efa))
+
+
+### Features
+
+* display purchase details in checkout modal when taxes are enabled ([#1480](https://github.com/Automattic/newspack-blocks/issues/1480)) ([b69f8f3](https://github.com/Automattic/newspack-blocks/commit/b69f8f3dbaabfa4648cab97131e8795c24c07af2))
+
+# [1.72.0-alpha.1](https://github.com/Automattic/newspack-blocks/compare/v1.71.0...v1.72.0-alpha.1) (2023-06-29)
+
+
+### Bug Fixes
+
+* **donate-block:** allow spaces in button label ([#1479](https://github.com/Automattic/newspack-blocks/issues/1479)) ([96adc82](https://github.com/Automattic/newspack-blocks/commit/96adc822cb92201298a53a05df2867d31a6a4efa))
+
+
+### Features
+
+* display purchase details in checkout modal when taxes are enabled ([#1480](https://github.com/Automattic/newspack-blocks/issues/1480)) ([b69f8f3](https://github.com/Automattic/newspack-blocks/commit/b69f8f3dbaabfa4648cab97131e8795c24c07af2))
+
+# [1.71.0](https://github.com/Automattic/newspack-blocks/compare/v1.70.0...v1.71.0) (2023-06-29)
+
+
+### Features
+
+* **modal-checkout:** render order details under different conditions ([#1485](https://github.com/Automattic/newspack-blocks/issues/1485)) ([#1488](https://github.com/Automattic/newspack-blocks/issues/1488)) ([aa569ad](https://github.com/Automattic/newspack-blocks/commit/aa569ad470e66a93cbdd145ef80c6f96c9ae5457))
+
+# [1.70.0](https://github.com/Automattic/newspack-blocks/compare/v1.69.0...v1.70.0) (2023-06-19)
+
+
+### Bug Fixes
+
+* **checkout-button:** overlay class for modal stacking ([#1461](https://github.com/Automattic/newspack-blocks/issues/1461)) ([594095b](https://github.com/Automattic/newspack-blocks/commit/594095b02f957ccb974c0c40ea9e76685ae32844))
+
+
+### Features
+
+* **checkout-button:** front-end product variation selection ([#1459](https://github.com/Automattic/newspack-blocks/issues/1459)) ([a978160](https://github.com/Automattic/newspack-blocks/commit/a978160c3e453b60bf9bcd92ad53c9b6c39fb23b))
+* **modal-checkout:** always use donation billing fields ([#1463](https://github.com/Automattic/newspack-blocks/issues/1463)) ([ab176bf](https://github.com/Automattic/newspack-blocks/commit/ab176bfebf6c5a12c8bf1fde3ba52db4c1f9454d))
+
+# [1.70.0-alpha.1](https://github.com/Automattic/newspack-blocks/compare/v1.69.0...v1.70.0-alpha.1) (2023-06-08)
+
+
+### Bug Fixes
+
+* **checkout-button:** overlay class for modal stacking ([#1461](https://github.com/Automattic/newspack-blocks/issues/1461)) ([594095b](https://github.com/Automattic/newspack-blocks/commit/594095b02f957ccb974c0c40ea9e76685ae32844))
+
+
+### Features
+
+* **checkout-button:** front-end product variation selection ([#1459](https://github.com/Automattic/newspack-blocks/issues/1459)) ([a978160](https://github.com/Automattic/newspack-blocks/commit/a978160c3e453b60bf9bcd92ad53c9b6c39fb23b))
+* **modal-checkout:** always use donation billing fields ([#1463](https://github.com/Automattic/newspack-blocks/issues/1463)) ([ab176bf](https://github.com/Automattic/newspack-blocks/commit/ab176bfebf6c5a12c8bf1fde3ba52db4c1f9454d))
+
+# [1.69.0](https://github.com/Automattic/newspack-blocks/compare/v1.68.2...v1.69.0) (2023-06-05)
+
+
+### Bug Fixes
+
+* **checkout-button:** overlay class for modal stacking ([#1461](https://github.com/Automattic/newspack-blocks/issues/1461)) ([21b6a44](https://github.com/Automattic/newspack-blocks/commit/21b6a4465d6182ad64f36d065cf7c35241dd5d5e))
+
+
+### Features
+
+* adding link to the author bio avatar ([#1449](https://github.com/Automattic/newspack-blocks/issues/1449)) ([60d9f1c](https://github.com/Automattic/newspack-blocks/commit/60d9f1c61306b9c76be3f487d56f95a04a4565f0))
+* **checkout-button:** front-end product variation selection ([#1459](https://github.com/Automattic/newspack-blocks/issues/1459)) ([d492a9a](https://github.com/Automattic/newspack-blocks/commit/d492a9ade4ef5030fbda6e2b156e3d823813383d))
+* **checkout-button:** support product variations ([#1442](https://github.com/Automattic/newspack-blocks/issues/1442)) ([aa70495](https://github.com/Automattic/newspack-blocks/commit/aa70495940a6c85e9eb9747eb91a989df97e9921))
+* **modal-checkout:** always use donation billing fields ([#1463](https://github.com/Automattic/newspack-blocks/issues/1463)) ([de674c7](https://github.com/Automattic/newspack-blocks/commit/de674c7732f2dccd4e508efb6fabde0816a01fb7))
+
+# [1.69.0-alpha.3](https://github.com/Automattic/newspack-blocks/compare/v1.69.0-alpha.2...v1.69.0-alpha.3) (2023-06-01)
+
+
+### Bug Fixes
+
+* **checkout-button:** overlay class for modal stacking ([#1461](https://github.com/Automattic/newspack-blocks/issues/1461)) ([21b6a44](https://github.com/Automattic/newspack-blocks/commit/21b6a4465d6182ad64f36d065cf7c35241dd5d5e))
+
+# [1.69.0-alpha.2](https://github.com/Automattic/newspack-blocks/compare/v1.69.0-alpha.1...v1.69.0-alpha.2) (2023-05-31)
+
+
+### Features
+
+* **checkout-button:** front-end product variation selection ([#1459](https://github.com/Automattic/newspack-blocks/issues/1459)) ([d492a9a](https://github.com/Automattic/newspack-blocks/commit/d492a9ade4ef5030fbda6e2b156e3d823813383d))
+
+# [1.69.0-alpha.1](https://github.com/Automattic/newspack-blocks/compare/v1.68.2...v1.69.0-alpha.1) (2023-05-25)
+
+
+### Features
+
+* adding link to the author bio avatar ([#1449](https://github.com/Automattic/newspack-blocks/issues/1449)) ([60d9f1c](https://github.com/Automattic/newspack-blocks/commit/60d9f1c61306b9c76be3f487d56f95a04a4565f0))
+* **checkout-button:** support product variations ([#1442](https://github.com/Automattic/newspack-blocks/issues/1442)) ([aa70495](https://github.com/Automattic/newspack-blocks/commit/aa70495940a6c85e9eb9747eb91a989df97e9921))
+
+## [1.68.2](https://github.com/Automattic/newspack-blocks/compare/v1.68.1...v1.68.2) (2023-05-24)
+
+
+### Bug Fixes
+
+* bump up font size on smallest blocks ([#1443](https://github.com/Automattic/newspack-blocks/issues/1443)) ([97c77c3](https://github.com/Automattic/newspack-blocks/commit/97c77c3129c352b541be47e7b842f0b048165a81))
+
+## [1.68.2-alpha.1](https://github.com/Automattic/newspack-blocks/compare/v1.68.1...v1.68.2-alpha.1) (2023-05-11)
+
+
+### Bug Fixes
+
+* bump up font size on smallest blocks ([#1443](https://github.com/Automattic/newspack-blocks/issues/1443)) ([97c77c3](https://github.com/Automattic/newspack-blocks/commit/97c77c3129c352b541be47e7b842f0b048165a81))
+
 ## [1.68.1](https://github.com/Automattic/newspack-blocks/compare/v1.68.0...v1.68.1) (2023-05-09)
 
 

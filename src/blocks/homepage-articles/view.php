@@ -25,7 +25,7 @@ function newspack_blocks_hpb_maximum_image_width() {
 		$site_content_width  = 1200;
 		$is_image_half_width = in_array( $attributes['mediaPosition'], [ 'left', 'right' ], true );
 		if ( 'grid' === $attributes['postLayout'] ) {
-			$columns = $attributes['columns'];
+			$columns = absint( $attributes['columns'] );
 			if ( $is_image_half_width ) {
 				// If the media position is on left or right, the image is 50% of the column width.
 				$columns = $columns * 2;
@@ -71,6 +71,149 @@ function newspack_blocks_filter_hpb_sizes( $sizes ) {
 }
 
 /**
+ * Retrieve Homepage Articles blocks from blocks, recursively.
+ *
+ * @param array  $blocks The blocks to search.
+ * @param string $block_name The block name to search for.
+ */
+function newspack_blocks_retrieve_homepage_articles_blocks( $blocks, $block_name ) {
+	$ha_blocks = [];
+	foreach ( $blocks as $block ) {
+		if ( $block_name === $block['blockName'] ) {
+			$ha_blocks = array_merge( $ha_blocks, [ $block ] );
+		}
+		if ( is_array( $block['innerBlocks'] ) ) {
+			$ha_blocks = array_merge( $ha_blocks, newspack_blocks_retrieve_homepage_articles_blocks( $block['innerBlocks'], $block_name ) );
+		}
+	}
+	return $ha_blocks;
+}
+
+/**
+ * Collect all attributes' values used in a set of blocks.
+ *
+ * @param array $blocks The blocks to search.
+ */
+function newspack_blocks_collect_all_attribute_values( $blocks ) {
+	$result = [];
+
+	foreach ( $blocks as $block ) {
+		foreach ( $block as $key => $value ) {
+			if ( ! isset( $result[ $key ] ) ) {
+				$result[ $key ] = [];
+			}
+			if ( ! in_array( $value, $result[ $key ], true ) ) {
+				$result[ $key ][] = $value;
+			}
+		}
+	}
+
+	return $result;
+}
+
+/**
+ * Output a CSS string based on attributes used in a set of blocks.
+ * This is to mitigate CLS. Any CSS that might cause CLS should be output here,
+ * inline and before the blocks are printed.
+ *
+ * @param array $attrs The attributes used in the blocks.
+ */
+function newspack_blocks_get_homepage_articles_css_string( $attrs ) {
+	$entry_title_type_scale = [
+		'0.7em',
+		'0.9em',
+		'1em',
+		'1.2em',
+		'1.4em',
+		'1.7em',
+		'2em',
+		'2.2em',
+		'2.4em',
+		'2.6em',
+	];
+
+	ob_start();
+	?>
+		.wpnbha .entry-title {
+			font-size: 1.2em;
+		}
+		.wpnbha .entry-meta {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			margin-top: 0.5em;
+		}
+		.wpnbha article .entry-meta {
+			font-size: 0.8em;
+		}
+		.wpnbha article .avatar {
+			height: 25px;
+			width: 25px;
+		}
+		.wpnbha .post-thumbnail{
+			margin: 0;
+			margin-bottom: 0.25em;
+		}
+		.wpnbha .post-thumbnail img {
+			height: auto;
+			width: 100%;
+		}
+		.wpnbha .post-thumbnail figcaption {
+			margin-bottom: 0.5em;
+		}
+		.wpnbha p {
+			margin: 0.5em 0;
+		}
+
+		<?php
+		if ( isset( $attrs['typeScale'] ) ) {
+			foreach ( $attrs['typeScale'] as $scale ) {
+				echo esc_html(
+					".wpnbha.ts-$scale .entry-title{font-size: {$entry_title_type_scale[$scale - 1]}}"
+				);
+				if ( in_array( $scale, [ 8, 9, 10 ], true ) ) {
+					echo esc_html(
+						".wpnbha.ts-$scale .entry-title {line-height: 1.1;}"
+					);
+				}
+				if ( in_array( $scale, [ 7, 8, 9, 10 ], true ) ) {
+					echo esc_html(
+						".wpnbha.ts-$scale .newspack-post-subtitle {font-size: 1.4em;}"
+					);
+				}
+				if ( in_array( $scale, [ 6 ], true ) ) {
+					echo esc_html(
+						".wpnbha.ts-$scale article .newspack-post-subtitle {font-size: 1.4em;}"
+					);
+				}
+				if ( in_array( $scale, [ 5 ], true ) ) {
+					echo esc_html(
+						".wpnbha.ts-$scale article .newspack-post-subtitle {font-size: 1.2em;}"
+					);
+				}
+				if ( in_array( $scale, [ 1, 2, 3 ], true ) ) {
+					echo esc_html(
+						".wpnbha.ts-$scale article .newspack-post-subtitle,.entry-wrapper p,.entry-wrapper .more-link,.entry-meta {font-size: 0.8em;}"
+					);
+				}
+			}
+		}
+		if ( isset( $attrs['showSubtitle'] ) && in_array( 1, $attrs['showSubtitle'], false ) ) { // phpcs:ignore WordPress.PHP.StrictInArray.FoundNonStrictFalse
+			echo esc_html(
+				'.newspack-post-subtitle {
+					margin-top: 0.3em;
+					margin-bottom: 0;
+					line-height: 1.4;
+					font-style: italic;
+				}'
+			);
+		}
+		?>
+	<?php
+	return ob_get_clean();
+}
+
+/**
  * Renders the `newspack-blocks/homepage-posts` block on server.
  *
  * @param array $attributes The block attributes.
@@ -83,10 +226,30 @@ function newspack_blocks_render_block_homepage_articles( $attributes ) {
 		return;
 	}
 
+	$block_name = apply_filters( 'newspack_blocks_block_name', 'newspack-blocks/homepage-articles' );
+
+	// Gather all Homepage Articles blocks on the page and output only the needed CSS.
+	// This CSS will be printed right after .entry-content.
+	global $newspack_blocks_hpb_all_blocks;
+	$inline_style_html = '';
+	if ( ! is_array( $newspack_blocks_hpb_all_blocks ) ) {
+		$newspack_blocks_hpb_all_blocks = newspack_blocks_retrieve_homepage_articles_blocks(
+			parse_blocks( get_the_content() ),
+			$block_name
+		);
+		$all_used_attrs                 = newspack_blocks_collect_all_attribute_values( array_column( $newspack_blocks_hpb_all_blocks, 'attrs' ) );
+		$css_string                     = newspack_blocks_get_homepage_articles_css_string( $all_used_attrs );
+		ob_start();
+		?>
+			<style id="newspack-blocks-inline-css" type="text/css"><?php echo esc_html( $css_string ); ?></style>
+		<?php
+		$inline_style_html = ob_get_clean();
+	}
+
 	// This will let the FSE plugin know we need CSS/JS now.
 	do_action( 'newspack_blocks_render_homepage_articles' );
 
-	$article_query = new WP_Query( Newspack_Blocks::build_articles_query( $attributes, apply_filters( 'newspack_blocks_block_name', 'newspack-blocks/homepage-articles' ) ) );
+	$article_query = new WP_Query( Newspack_Blocks::build_articles_query( $attributes, $block_name ) );
 
 	$classes = Newspack_Blocks::block_classes( 'homepage-articles', $attributes, [ 'wpnbha' ] );
 
@@ -139,6 +302,20 @@ function newspack_blocks_render_block_homepage_articles( $attributes ) {
 	if ( '' !== $attributes['customTextColor'] ) {
 		$styles = 'color: ' . $attributes['customTextColor'] . ';';
 	}
+
+	// Handle custom taxonomies.
+	if ( isset( $attributes['customTaxonomies'] ) ) {
+		$custom_taxes = $attributes['customTaxonomies'];
+		unset( $attributes['customTaxonomies'] );
+		if ( is_array( $custom_taxes ) && ! empty( $custom_taxes ) ) {
+			foreach ( $custom_taxes as $tax ) {
+				if ( ! empty( $tax['slug'] ) && ! empty( $tax['terms'] ) ) {
+					$attributes[ $tax['slug'] ] = $tax['terms'];
+				}
+			}
+		}
+	}
+
 	$articles_rest_url = add_query_arg(
 		array_merge(
 			array_map(
@@ -149,7 +326,6 @@ function newspack_blocks_render_block_homepage_articles( $attributes ) {
 			),
 			[
 				'page' => 2,
-				'amp'  => Newspack_Blocks::is_amp(),
 			]
 		),
 		rest_url( '/newspack-blocks/v1/articles' )
@@ -176,10 +352,8 @@ function newspack_blocks_render_block_homepage_articles( $attributes ) {
 
 	ob_start();
 
-	if ( $article_query->have_posts() ) : ?>
-		<?php if ( $has_more_button && Newspack_Blocks::is_amp() ) : ?>
-			<amp-script layout="container" src="<?php echo esc_url( plugins_url( '/newspack-blocks/amp/homepage-articles/view.js' ) ); ?>">
-		<?php endif; ?>
+	if ( $article_query->have_posts() ) :
+		?>
 		<div
 			class="<?php echo esc_attr( $classes ); ?>"
 			style="<?php echo esc_attr( $styles ); ?>"
@@ -194,9 +368,9 @@ function newspack_blocks_render_block_homepage_articles( $attributes ) {
 				echo Newspack_Blocks::template_inc( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					__DIR__ . '/templates/articles-list.php',
 					[
-						'articles_rest_url' => $articles_rest_url,
-						'article_query'     => $article_query,
-						'attributes'        => $attributes,
+						'articles_rest_url' => $articles_rest_url, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						'article_query'     => $article_query, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+						'attributes'        => $attributes, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 					]
 				);
 				?>
@@ -224,16 +398,13 @@ function newspack_blocks_render_block_homepage_articles( $attributes ) {
 			<?php endif; ?>
 
 		</div>
-		<?php if ( $has_more_button && Newspack_Blocks::is_amp() ) : ?>
-			</amp-script>
-		<?php endif; ?>
 		<?php
 	endif;
 
 	$content = ob_get_clean();
 	Newspack_Blocks::enqueue_view_assets( 'homepage-articles' );
 
-	return $content;
+	return $inline_style_html . $content;
 }
 
 /**
@@ -270,7 +441,14 @@ add_action( 'init', 'newspack_blocks_register_homepage_articles' );
 function newspack_blocks_format_avatars( $author_info ) {
 	$elements = array_map(
 		function ( $author ) {
-			return sprintf( '<a href="%s">%s</a>', $author->url, $author->avatar );
+			return sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( $author->url ),
+				wp_kses(
+					$author->avatar,
+					Newspack_Blocks::get_sanitized_image_attributes()
+				)
+			);
 		},
 		$author_info
 	);
@@ -294,7 +472,7 @@ function newspack_blocks_format_byline( $author_info ) {
 		array_reduce(
 			$author_info,
 			function ( $accumulator, $author ) use ( $author_info, &$index ) {
-				$index ++;
+				$index++;
 				$penultimate = count( $author_info ) - 2;
 
 				$get_author_posts_url = get_author_posts_url( $author->ID );
@@ -324,28 +502,35 @@ function newspack_blocks_format_byline( $author_info ) {
 }
 
 /**
- * Inject amp-state containing all post IDs visible on page load.
+ * Renders category markup plus filter.
+ *
+ * @param string $post_id Post ID.
  */
-function newspack_blocks_inject_amp_state() {
-	if ( ! Newspack_Blocks::is_amp() ) {
-		return;
+function newspack_blocks_format_categories( $post_id ) {
+	$category = false;
+	// Use Yoast primary category if set.
+	if ( class_exists( 'WPSEO_Primary_Term' ) ) {
+		$primary_term = new WPSEO_Primary_Term( 'category', $post_id );
+		$category_id  = $primary_term->get_primary_term();
+		if ( $category_id ) {
+			$category = get_term( $category_id );
+		}
 	}
-	global $newspack_blocks_post_id;
-	if ( ! $newspack_blocks_post_id || ! count( $newspack_blocks_post_id ) ) {
-		return;
+	if ( ! $category ) {
+		$categories_list = get_the_category();
+		if ( ! empty( $categories_list ) ) {
+			$category = $categories_list[0];
+		}
 	}
-	$post_ids = implode( ', ', array_merge( array_keys( $newspack_blocks_post_id ), [ get_the_ID() ] ) );
-	ob_start();
-	?>
-	<amp-state id='newspackHomepagePosts'>
-		<script type="application/json">
-			{
-				"exclude_ids": [ <?php echo esc_attr( $post_ids ); ?> ]
-			}
-		</script>
-	</amp-state>
-	<?php
-	echo ob_get_clean(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-}
 
-add_action( 'wp_footer', 'newspack_blocks_inject_amp_state' );
+	$category_link      = get_category_link( $category->term_id );
+	$category_formatted = esc_html( $category->name );
+
+	if ( ! empty( $category_link ) ) {
+		$category_formatted = '<a href="' . esc_attr( $category_link ) . '">' . esc_html( $category->name ) . '</a>';
+	}
+
+	if ( $category ) {
+		return apply_filters( 'newspack_blocks_categories', $category_formatted );
+	}
+}

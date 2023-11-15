@@ -72,15 +72,6 @@ if (
 	IS_SUBTITLE_SUPPORTED_IN_THEME = true;
 }
 
-let IS_MULTIBRANDED_SITE;
-if (
-	typeof window === 'object' &&
-	window.newspack_blocks_data &&
-	window.newspack_blocks_data.multibranded_sites_enabled
-) {
-	IS_MULTIBRANDED_SITE = true;
-}
-
 const landscapeIcon = (
 	<SVG xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
 		<Path
@@ -190,7 +181,7 @@ class Edit extends Component {
 							) }
 							{ showCategory &&
 								( ! post.newspack_post_sponsors || post.newspack_sponsors_show_categories ) && (
-									<a href="#">{ decodeEntities( post.newspack_category_info ) }</a>
+									<RawHTML>{ decodeEntities( post.newspack_category_info ) }</RawHTML>
 								) }
 						</div>
 					) }
@@ -204,10 +195,7 @@ class Edit extends Component {
 						</h3>
 					) }
 					{ IS_SUBTITLE_SUPPORTED_IN_THEME && showSubtitle && (
-						<RawHTML
-							key="subtitle"
-							className="newspack-post-subtitle newspack-post-subtitle--in-homepage-block"
-						>
+						<RawHTML key="subtitle" className="newspack-post-subtitle">
 							{ post.meta.newspack_post_subtitle || '' }
 						</RawHTML>
 					) }
@@ -275,7 +263,8 @@ class Edit extends Component {
 			specificPosts,
 			postsToShow,
 			categories,
-			brands,
+			includeSubcategories,
+			customTaxonomies,
 			columns,
 			colGap,
 			postType,
@@ -352,13 +341,6 @@ class Edit extends Component {
 
 		const handleAttributeChange = key => value => setAttributes( { [ key ]: value } );
 
-		const brandProps = IS_MULTIBRANDED_SITE
-			? {
-					brands,
-					onBrandsChange: handleAttributeChange( 'brands' ),
-			  }
-			: '';
-
 		return (
 			<Fragment>
 				<PanelBody title={ __( 'Display Settings', 'newspack-blocks' ) } initialOpen={ true }>
@@ -375,9 +357,12 @@ class Edit extends Component {
 						onAuthorsChange={ handleAttributeChange( 'authors' ) }
 						categories={ categories }
 						onCategoriesChange={ handleAttributeChange( 'categories' ) }
+						includeSubcategories={ includeSubcategories }
+						onIncludeSubcategoriesChange={ handleAttributeChange( 'includeSubcategories' ) }
 						tags={ tags }
 						onTagsChange={ handleAttributeChange( 'tags' ) }
-						{ ...brandProps }
+						onCustomTaxonomiesChange={ handleAttributeChange( 'customTaxonomies' ) }
+						customTaxonomies={ customTaxonomies }
 						tagExclusions={ tagExclusions }
 						onTagExclusionsChange={ handleAttributeChange( 'tagExclusions' ) }
 						categoryExclusions={ categoryExclusions }
@@ -408,7 +393,6 @@ class Edit extends Component {
 											const isCurrent = colGap === option.value;
 											return (
 												<Button
-													isLarge
 													isPrimary={ isCurrent }
 													aria-pressed={ isCurrent }
 													aria-label={ option.label }
@@ -447,6 +431,16 @@ class Edit extends Component {
 							/>
 						)
 					) }
+					<ToggleControl
+						label={ __( 'Allow duplicate stories', 'newspack-blocks' ) }
+						help={ __(
+							"If checked, this block will be excluded from the page's de-duplication logic. Duplicate stories may appear.",
+							'newspack-blocks'
+						) }
+						checked={ ! attributes.deduplicate }
+						onChange={ value => setAttributes( { deduplicate: ! value } ) }
+						className="newspack-blocks-deduplication-toggle"
+					/>
 				</PanelBody>
 				<PanelBody title={ __( 'Featured Image Settings', 'newspack-blocks' ) }>
 					<PanelRow>
@@ -489,7 +483,6 @@ class Edit extends Component {
 											const isCurrent = imageScale === option.value;
 											return (
 												<Button
-													isLarge
 													isPrimary={ isCurrent }
 													aria-pressed={ isCurrent }
 													aria-label={ option.label }

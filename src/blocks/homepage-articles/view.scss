@@ -136,19 +136,6 @@
 	}
 
 	/* Image styles */
-	.post-thumbnail {
-		margin: 0;
-		margin-bottom: 0.25em;
-
-		img {
-			height: auto;
-			width: 100%;
-		}
-
-		figcaption {
-			margin-bottom: 0.5em;
-		}
-	}
 
 	figcaption {
 		font-size: variables.$font__size-xxs;
@@ -252,11 +239,6 @@
 	}
 
 	.entry-meta {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		margin-top: 0.5em;
-
 		.byline:not( :last-child ) {
 			margin-right: 1.5em;
 		}
@@ -274,10 +256,6 @@
 		border-radius: 100%;
 		display: block;
 		margin-right: 0.5em;
-	}
-
-	p {
-		margin: 0.5em 0;
 	}
 
 	&.has-text-color {
@@ -307,13 +285,10 @@
 			position: relative;
 
 			.post-thumbnail {
-				bottom: 0;
-				left: 0;
+				inset: 0;
 				margin: 0;
 				overflow: hidden;
 				position: absolute;
-				right: 0;
-				top: 0;
 
 				img {
 					height: 100% !important;
@@ -325,12 +300,9 @@
 
 				&::after {
 					background: rgba( 0, 0, 0, 0.5 );
-					bottom: 0;
 					content: '';
-					left: 0;
+					inset: 0;
 					position: absolute;
-					right: 0;
-					top: 0;
 					z-index: 1;
 				}
 			}
@@ -461,11 +433,7 @@
 			margin: 0;
 		}
 	}
-}
 
-/* stylelint-disable selector-type-no-unknown  */
-.wpnbha,
-amp-script .wpnbha {
 	/* Article meta */
 	.cat-links {
 		display: flex;
@@ -513,32 +481,17 @@ amp-script .wpnbha {
 		line-height: 1;
 	}
 }
-/* stylelint-enable */
 
 /*
 	Some really rough font sizing.
  */
 /* stylelint-disable no-duplicate-selectors  */
 .wpnbha {
-	/* 'Normal' size */
 	article {
-		.entry-title {
-			font-size: 1.2em;
-		}
-		.entry-meta {
-			font-size: 0.8em;
-		}
-
-		.avatar {
-			height: 25px;
-			width: 25px;
-		}
-
 		@include mixins.media( tablet ) {
 			.entry-title {
 				font-size: 1.6em;
 			}
-
 			.avatar {
 				height: 40px;
 				width: 40px;
@@ -549,9 +502,6 @@ amp-script .wpnbha {
 	&.ts-10,
 	&.ts-9,
 	&.ts-8 {
-		.entry-title {
-			line-height: 1.1;
-		}
 		@include mixins.media( tablet ) {
 			article .avatar {
 				height: 2.4em;
@@ -560,19 +510,7 @@ amp-script .wpnbha {
 		}
 	}
 
-	&.ts-10,
-	&.ts-9,
-	&.ts-8,
-	&.ts-7 {
-		.newspack-post-subtitle {
-			font-size: 1.4em;
-		}
-	}
-
 	&.ts-10 article {
-		.entry-title {
-			font-size: 2.6em;
-		}
 		@include mixins.media( tablet ) {
 			.entry-title {
 				font-size: 3.6em;
@@ -586,9 +524,6 @@ amp-script .wpnbha {
 	}
 
 	&.ts-9 article {
-		.entry-title {
-			font-size: 2.4em;
-		}
 		@include mixins.media( tablet ) {
 			.entry-title {
 				font-size: 3.4em;
@@ -602,9 +537,6 @@ amp-script .wpnbha {
 	}
 
 	&.ts-8 article {
-		.entry-title {
-			font-size: 2.2em;
-		}
 		@include mixins.media( tablet ) {
 			.entry-title {
 				font-size: 3em;
@@ -618,9 +550,6 @@ amp-script .wpnbha {
 	}
 
 	&.ts-7 article {
-		.entry-title {
-			font-size: 2em;
-		}
 		@include mixins.media( tablet ) {
 			.entry-title {
 				font-size: 2.4em;
@@ -638,12 +567,6 @@ amp-script .wpnbha {
 	}
 
 	&.ts-6 article {
-		.entry-title {
-			font-size: 1.7em;
-		}
-		.newspack-post-subtitle {
-			font-size: 1.4em;
-		}
 		@include mixins.media( tablet ) {
 			.entry-title {
 				font-size: 2em;
@@ -661,12 +584,6 @@ amp-script .wpnbha {
 	}
 
 	&.ts-5 article {
-		.entry-title {
-			font-size: 1.4em;
-		}
-		.newspack-post-subtitle {
-			font-size: 1.2em;
-		}
 		@include mixins.media( tablet ) {
 			.entry-title {
 				font-size: 1.8em;
@@ -686,20 +603,13 @@ amp-script .wpnbha {
 	/* Type Scale 4: default */
 
 	&.ts-3 article {
-		.entry-title {
-			font-size: 1em;
-		}
-		.newspack-post-subtitle,
-		.entry-wrapper p,
-		.entry-wrapper .more-link {
-			font-size: 0.8em;
-		}
-		.entry-meta {
-			font-size: 0.7em;
-		}
 		@include mixins.media( tablet ) {
 			.entry-title {
 				font-size: 1.2em;
+			}
+
+			.entry-meta {
+				font-size: 0.7em;
 			}
 
 			.avatar {
@@ -709,19 +619,19 @@ amp-script .wpnbha {
 		}
 	}
 
-	&.ts-2 article {
-		.entry-title {
-			font-size: 0.8em;
+	&.ts-2 article,
+	&.ts-1 article {
+		@include mixins.media( tablet ) {
+			.entry-wrapper p,
+			.entry-wrapper .more-link,
+			.entry-meta,
+			.newspack-post-subtitle {
+				font-size: 0.7em;
+			}
 		}
-		.newspack-post-subtitle {
-			font-size: 0.7em;
-		}
-		.entry-wrapper p,
-		.entry-wrapper .more-link,
-		.entry-meta {
-			font-size: 0.7em;
-		}
+	}
 
+	&.ts-2 article {
 		@include mixins.media( tablet ) {
 			.entry-title {
 				font-size: 0.9em;
@@ -735,18 +645,11 @@ amp-script .wpnbha {
 	}
 
 	&.ts-1 article {
-		.entry-title,
-		.entry-wrapper p,
-		.entry-wrapper .more-link {
-			font-size: 0.7em;
-		}
-		.newspack-post-subtitle {
-			font-size: 0.7em;
-		}
-		.entry-meta {
-			font-size: 0.6em;
-		}
 		@include mixins.media( tablet ) {
+			.entry-title {
+				font-size: 0.7em;
+			}
+
 			.avatar {
 				height: 24px;
 				width: 24px;
@@ -820,31 +723,3 @@ amp-script .wpnbha {
 		}
 	}
 }
-
-/* Styles for the Subtitle, as part of the the Block */
-.newspack-post-subtitle {
-	&--in-homepage-block {
-		margin-top: 0.3em;
-		margin-bottom: 0;
-		line-height: 1.4;
-		font-style: italic;
-	}
-}
-
-/* Prevent tree-shaking Loading and Error style rules */
-/* stylelint-disable selector-type-no-unknown  */
-amp-script .wpnbha.has-more-button.is-loading {
-	button {
-		display: none;
-	}
-	.loading {
-		display: block;
-	}
-}
-amp-script .wpnbha.has-more-button.is-error {
-	button,
-	.error {
-		display: block;
-	}
-}
-/* stylelint-enable */

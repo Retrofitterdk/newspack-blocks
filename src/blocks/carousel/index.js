@@ -64,10 +64,14 @@ export const settings = {
 		categories: {
 			type: 'array',
 		},
+		includeSubcategories: {
+			type: 'boolean',
+			default: true,
+		},
 		tags: {
 			type: 'array',
 		},
-		brands: {
+		customTaxonomies: {
 			type: 'array',
 		},
 		showDate: {

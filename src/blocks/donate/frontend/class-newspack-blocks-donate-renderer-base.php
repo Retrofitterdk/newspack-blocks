@@ -90,10 +90,7 @@ abstract class Newspack_Blocks_Donate_Renderer_Base {
 			}
 		}
 
-		$is_tiers_based = $configuration['tiered'] && 'tiers' === $attributes['layoutOption'];
-		if ( ! Newspack_Blocks::can_render_tiers_based_layout() ) {
-			$is_tiers_based = false;
-		}
+		$is_tiers_based                        = $configuration['tiered'] && 'tiers' === $attributes['layoutOption'];
 		$configuration['is_tier_based_layout'] = $is_tiers_based;
 
 		$frequencies = [
@@ -103,9 +100,6 @@ abstract class Newspack_Blocks_Donate_Renderer_Base {
 		];
 		foreach ( array_keys( $frequencies ) as $frequency_slug ) {
 			if ( $configuration['disabledFrequencies'][ $frequency_slug ] ) {
-				unset( $frequencies[ $frequency_slug ] );
-			}
-			if ( $is_tiers_based && 'once' === $frequency_slug ) {
 				unset( $frequencies[ $frequency_slug ] );
 			}
 		}
@@ -296,9 +290,11 @@ abstract class Newspack_Blocks_Donate_Renderer_Base {
 	}
 
 	/**
-	 * Render hidden form input indentifying a donate form submission.
+	 * Render hidden form inputs.
+	 *
+	 * @param array $attributes The block attributes.
 	 */
-	protected static function render_donate_form_input() {
+	protected static function render_hidden_form_inputs( $attributes ) {
 		ob_start();
 		/**
 		 * Action to add custom fields before the form fields of the donation block.
@@ -308,26 +304,17 @@ abstract class Newspack_Blocks_Donate_Renderer_Base {
 		?>
 			<input type='hidden' name='newspack_donate' value='1' />
 		<?php
-		return ob_get_clean();
-	}
 
-	/**
-	 * Render Client ID hidden form input.
-	 */
-	protected static function render_client_id_form_input() {
-		if ( class_exists( 'Newspack_Popups_Segmentation' ) ) {
-			$client_id = Newspack_Popups_Segmentation::NEWSPACK_SEGMENTATION_CID_NAME;
-			ob_start();
+		foreach ( [ [ 'afterSuccessBehavior', 'after_success_behavior' ], [ 'afterSuccessButtonLabel', 'after_success_button_label' ], [ 'afterSuccessURL', 'after_success_url' ] ] as $attribute ) {
+			$attribute_name = $attribute[0];
+			$param_name     = $attribute[1];
+			$value          = isset( $attributes[ $attribute_name ] ) ? $attributes[ $attribute_name ] : '';
 			?>
-				<input
-					name="cid"
-					type="hidden"
-					value="CLIENT_ID(<?php echo esc_attr( $client_id ); ?>)"
-					data-amp-replace="CLIENT_ID"
-				/>
+				<input type='hidden' name='<?php echo esc_attr( $param_name ); ?>' value='<?php echo esc_attr( $value ); ?>' />
 			<?php
-			return ob_get_clean();
 		}
+
+		return ob_get_clean();
 	}
 
 	/**

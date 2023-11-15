@@ -54,7 +54,6 @@ class Newspack_Blocks {
 		add_action( 'after_setup_theme', [ __CLASS__, 'add_image_sizes' ] );
 		add_post_type_support( 'post', 'newspack_blocks' );
 		add_post_type_support( 'page', 'newspack_blocks' );
-		add_filter( 'script_loader_tag', [ __CLASS__, 'mark_view_script_as_amp_plus_allowed' ], 10, 2 );
 		add_action( 'jetpack_register_gutenberg_extensions', [ __CLASS__, 'disable_jetpack_donate' ], 99 );
 		add_filter( 'the_content', [ __CLASS__, 'hide_post_content_when_iframe_block_is_fullscreen' ] );
 		add_filter( 'posts_clauses', [ __CLASS__, 'filter_posts_clauses_when_co_authors' ], 999, 2 );
@@ -72,19 +71,6 @@ class Newspack_Blocks {
 		if ( ! defined( 'NGG_DISABLE_SHORTCODE_MANAGER' ) ) {
 			define( 'NGG_DISABLE_SHORTCODE_MANAGER', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound
 		}
-	}
-
-	/**
-	 * Modify the Donate block scripts to allow it as an "AMP Plus" script.
-	 *
-	 * @param string $tag HTML of the script tag.
-	 * @param string $handle The script handle.
-	 */
-	public static function mark_view_script_as_amp_plus_allowed( $tag, $handle ) {
-		if ( in_array( $handle, array_values( self::SCRIPT_HANDLES ), true ) ) {
-			return str_replace( '<script', '<script data-amp-plus-allowed', $tag );
-		}
-		return $tag;
 	}
 
 	/**
@@ -203,6 +189,49 @@ class Newspack_Blocks {
 	}
 
 	/**
+	 * Gets the list of custom taxonomies that will be available for filtering in the blocks
+	 *
+	 * @return array Array of custom taxonomies where each taxonomy is an array with slug and label keys.
+	 */
+	public static function get_custom_taxonomies() {
+		$custom_taxonomies = array_map(
+			function( $tax ) {
+				if ( ! empty( array_intersect( [ 'post', 'page' ], $tax->object_type ) ) ) {
+					return [
+						'slug'  => $tax->name,
+						'label' => $tax->label,
+					];
+				}
+			},
+			get_taxonomies(
+				[
+					'public'       => true,
+					'_builtin'     => false,
+					'show_in_rest' => true,
+				],
+				'objects'
+			)
+		);
+		$custom_taxonomies = array_values(
+			array_filter(
+				$custom_taxonomies,
+				function( $tax ) {
+					return ! empty( $tax );
+				}
+			)
+		);
+
+		/**
+		 * Filters the custom taxonomies that will be available in the Home Page block.
+		 *
+		 * By default, on the top of category and tags, will display any public taxonomy applied to post or pages
+		 *
+		 * @param array $custom_taxonomies Array of custom taxonomies where each taxonomy is an array with slug and label keys.
+		 */
+		return apply_filters( 'newspack_blocks_home_page_block_custom_taxonomies', $custom_taxonomies );
+	}
+
+	/**
 	 * Enqueue block scripts and styles for editor.
 	 */
 	public static function enqueue_block_editor_assets() {
@@ -225,11 +254,11 @@ class Newspack_Blocks {
 				'assets_path'                      => plugins_url( '/src/assets', NEWSPACK_BLOCKS__PLUGIN_FILE ),
 				'post_subtitle'                    => get_theme_support( 'post-subtitle' ),
 				'is_rendering_stripe_payment_form' => self::is_rendering_stripe_payment_form(),
-				'can_render_tiers_based_layout'    => self::can_render_tiers_based_layout(),
 				'iframe_accepted_file_mimes'       => self::iframe_accepted_file_mimes(),
 				'supports_recaptcha'               => class_exists( 'Newspack\Recaptcha' ),
 				'has_recaptcha'                    => class_exists( 'Newspack\Recaptcha' ) && \Newspack\Recaptcha::can_use_captcha(),
 				'recaptcha_url'                    => admin_url( 'admin.php?page=newspack-connections-wizard' ),
+				'custom_taxonomies'                => self::get_custom_taxonomies(),
 			];
 
 			if ( class_exists( 'WP_REST_Newspack_Author_List_Controller' ) ) {
@@ -240,10 +269,6 @@ class Newspack_Blocks {
 
 			if ( class_exists( '\Newspack\Authors_Custom_Fields' ) ) {
 				$localized_data['author_custom_fields'] = \Newspack\Authors_Custom_Fields::get_custom_fields();
-			}
-
-			if ( class_exists( 'Newspack_Multibranded_Site\Customizations\Theme_Colors' ) ) {
-				$localized_data['multibranded_sites_enabled'] = true;
 			}
 
 			wp_localize_script(
@@ -281,18 +306,6 @@ class Newspack_Blocks {
 			&& method_exists( 'Newspack\Donations', 'is_platform_stripe' )
 		) {
 			return \Newspack\Donations::can_use_streamlined_donate_block() && \Newspack\Donations::is_platform_stripe();
-		}
-		return false;
-	}
-
-	/**
-	 * Can the tiers-based layout of the Donate block be rendered?
-	 */
-	public static function can_render_tiers_based_layout() {
-		if ( ! is_plugin_active( 'amp/amp.php' ) ) {
-			return true;
-		} elseif ( method_exists( '\Newspack\AMP_Enhancements', 'is_amp_plus_configured' ) ) {
-			return \Newspack\AMP_Enhancements::is_amp_plus_configured();
 		}
 		return false;
 	}
@@ -415,18 +428,6 @@ class Newspack_Blocks {
 	}
 
 	/**
-	 * Checks whether the current view is served in AMP context.
-	 *
-	 * @return bool True if AMP, false otherwise.
-	 */
-	public static function is_amp() {
-		if ( function_exists( 'is_amp_endpoint' ) && is_amp_endpoint() ) {
-			return true;
-		}
-		return false;
-	}
-
-	/**
 	 * Return the most appropriate thumbnail size to display.
 	 *
 	 * @param string $orientation The block's orientation settings: landscape|portrait|square.
@@ -503,13 +504,15 @@ class Newspack_Blocks {
 			),
 		);
 
-		foreach ( $sizes[ $orientation ] as $key => $dimensions ) {
-			$attachment = wp_get_attachment_image_src(
-				get_post_thumbnail_id( get_the_ID() ),
-				'newspack-article-block-' . $orientation . '-' . $key
-			);
-			if ( ! empty( $attachment ) && $dimensions[0] === $attachment[1] && $dimensions[1] === $attachment[2] ) {
-				return 'newspack-article-block-' . $orientation . '-' . $key;
+		if ( isset( $sizes[ $orientation ] ) ) {
+			foreach ( $sizes[ $orientation ] as $key => $dimensions ) {
+				$attachment = wp_get_attachment_image_src(
+					get_post_thumbnail_id( get_the_ID() ),
+					'newspack-article-block-' . $orientation . '-' . $key
+				);
+				if ( ! empty( $attachment ) && $dimensions[0] === $attachment[1] && $dimensions[1] === $attachment[2] ) {
+					return 'newspack-article-block-' . $orientation . '-' . $key;
+				}
 			}
 		}
 
@@ -544,6 +547,56 @@ class Newspack_Blocks {
 	}
 
 	/**
+	 * Whether the block should be included in the deduplication logic.
+	 *
+	 * @param array $attributes Block attributes.
+	 *
+	 * @return bool
+	 */
+	public static function should_deduplicate_block( $attributes ) {
+		/**
+		 * Filters whether to use deduplication while rendering the given block.
+		 *
+		 * @param bool   $deduplicate Whether to deduplicate.
+		 * @param array  $attributes  The block attributes.
+		 */
+		return apply_filters( 'newspack_blocks_should_deduplicate', $attributes['deduplicate'] ?? true, $attributes );
+	}
+
+	/**
+	 * Get all "specificPosts" ids from given blocks.
+	 *
+	 * @param array  $blocks     An array of blocks.
+	 * @param string $block_name Name of the block requesting the query.
+	 *
+	 * @return array All "specificPosts" ids from all eligible blocks.
+	 */
+	private static function get_specific_posts_from_blocks( $blocks, $block_name ) {
+		$specific_posts = [];
+		foreach ( $blocks as $block ) {
+			if ( ! empty( $block['innerBlocks'] ) ) {
+				$specific_posts = array_merge(
+					$specific_posts,
+					self::get_specific_posts_from_blocks( $block['innerBlocks'], $block_name )
+				);
+				continue;
+			}
+			if (
+				$block_name === $block['blockName'] &&
+				self::should_deduplicate_block( $block['attrs'] ) &&
+				! empty( $block['attrs']['specificMode'] ) &&
+				! empty( $block['attrs']['specificPosts'] )
+			) {
+				$specific_posts = array_merge(
+					$specific_posts,
+					$block['attrs']['specificPosts']
+				);
+			}
+		}
+		return $specific_posts;
+	}
+
+	/**
 	 * Builds and returns query args based on block attributes.
 	 *
 	 * @param array $attributes An array of block attributes.
@@ -564,23 +617,7 @@ class Newspack_Blocks {
 		global $newspack_blocks_all_specific_posts_ids;
 		if ( ! is_array( $newspack_blocks_all_specific_posts_ids ) ) {
 			$blocks                                 = parse_blocks( get_the_content() );
-			$newspack_blocks_all_specific_posts_ids = array_reduce(
-				$blocks,
-				function ( $acc, $block ) use ( $block_name ) {
-					if (
-						$block_name === $block['blockName'] &&
-						isset( $block['attrs']['specificMode'], $block['attrs']['specificPosts'] ) &&
-						count( $block['attrs']['specificPosts'] )
-					) {
-						return array_merge(
-							$block['attrs']['specificPosts'],
-							$acc
-						);
-					}
-					return $acc;
-				},
-				[]
-			);
+			$newspack_blocks_all_specific_posts_ids = self::get_specific_posts_from_blocks( $blocks, $block_name );
 		}
 
 		$post_type              = isset( $attributes['postType'] ) ? $attributes['postType'] : [ 'post' ];
@@ -588,16 +625,17 @@ class Newspack_Blocks {
 		if ( current_user_can( 'edit_others_posts' ) && isset( $attributes['includedPostStatuses'] ) ) {
 			$included_post_statuses = $attributes['includedPostStatuses'];
 		}
-		$authors             = isset( $attributes['authors'] ) ? $attributes['authors'] : array();
-		$categories          = isset( $attributes['categories'] ) ? $attributes['categories'] : array();
-		$tags                = isset( $attributes['tags'] ) ? $attributes['tags'] : array();
-		$brands              = isset( $attributes['brands'] ) ? $attributes['brands'] : array();
-		$tag_exclusions      = isset( $attributes['tagExclusions'] ) ? $attributes['tagExclusions'] : array();
-		$category_exclusions = isset( $attributes['categoryExclusions'] ) ? $attributes['categoryExclusions'] : array();
-		$specific_posts      = isset( $attributes['specificPosts'] ) ? $attributes['specificPosts'] : array();
-		$posts_to_show       = intval( $attributes['postsToShow'] );
-		$specific_mode       = isset( $attributes['specificMode'] ) ? intval( $attributes['specificMode'] ) : false;
-		$args                = array(
+		$authors               = isset( $attributes['authors'] ) ? $attributes['authors'] : array();
+		$categories            = isset( $attributes['categories'] ) ? $attributes['categories'] : array();
+		$include_subcategories = isset( $attributes['includeSubcategories'] ) ? intval( $attributes['includeSubcategories'] ) : false;
+		$tags                  = isset( $attributes['tags'] ) ? $attributes['tags'] : array();
+		$custom_taxonomies     = isset( $attributes['customTaxonomies'] ) ? $attributes['customTaxonomies'] : array();
+		$tag_exclusions        = isset( $attributes['tagExclusions'] ) ? $attributes['tagExclusions'] : array();
+		$category_exclusions   = isset( $attributes['categoryExclusions'] ) ? $attributes['categoryExclusions'] : array();
+		$specific_posts        = isset( $attributes['specificPosts'] ) ? $attributes['specificPosts'] : array();
+		$posts_to_show         = intval( $attributes['postsToShow'] );
+		$specific_mode         = isset( $attributes['specificMode'] ) ? intval( $attributes['specificMode'] ) : false;
+		$args                  = array(
 			'post_type'           => $post_type,
 			'post_status'         => $included_post_statuses,
 			'suppress_filters'    => false,
@@ -611,9 +649,7 @@ class Newspack_Blocks {
 			$args['orderby']  = 'post__in';
 		} else {
 			$args['posts_per_page'] = $posts_to_show;
-
-			$show_rendered_posts = apply_filters( 'newspack_blocks_homepage_shown_rendered_posts', false );
-			if ( $show_rendered_posts ) {
+			if ( ! self::should_deduplicate_block( $attributes ) ) {
 				$args['post__not_in'] = [ get_the_ID() ];
 			} else {
 				if ( count( $newspack_blocks_all_specific_posts_ids ) ) {
@@ -626,6 +662,15 @@ class Newspack_Blocks {
 				);
 			}
 			if ( $categories && count( $categories ) ) {
+				if ( 1 === $include_subcategories ) {
+					$children = [];
+					foreach ( $categories as $parent ) {
+						$children = array_merge( $children, get_categories( [ 'child_of' => $parent ] ) );
+						foreach ( $children as $child ) {
+							$categories[] = $child->term_id;
+						}
+					}
+				}
 				$args['category__in'] = $categories;
 			}
 			if ( $tags && count( $tags ) ) {
@@ -637,23 +682,25 @@ class Newspack_Blocks {
 			if ( $category_exclusions && count( $category_exclusions ) ) {
 				$args['category__not_in'] = $category_exclusions;
 			}
-			if ( class_exists( 'Newspack_Multibranded_Site\Customizations\Theme_Colors' ) ) {
-				if ( $brands && count( $brands ) ) {
-					$args['tax_query'] = [ // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query
-						[
-							'taxonomy'         => 'brand',
+			if ( ! empty( $custom_taxonomies ) ) {
+				foreach ( $custom_taxonomies as $taxonomy ) {
+					if ( ! empty( $taxonomy['slug'] ) && ! empty( $taxonomy['terms'] ) ) {
+						$args['tax_query'][] = [
+							'taxonomy'         => $taxonomy['slug'],
 							'field'            => 'term_id',
-							'terms'            => $brands,
+							'terms'            => $taxonomy['terms'],
 							'include_children' => false,
-						],
-					];
+						];
+					}
 				}
 			}
+
 			$is_co_authors_plus_active = class_exists( 'CoAuthors_Guest_Authors' );
 
 			if ( $authors && count( $authors ) ) {
 				$co_authors_names = [];
 				$author_names     = [];
+				$author_emails    = [];
 
 				if ( $is_co_authors_plus_active ) {
 					$co_authors_guest_authors = new CoAuthors_Guest_Authors();
@@ -683,7 +730,8 @@ class Newspack_Blocks {
 										unset( $authors[ $index ] );
 									}
 								} else {
-									$author_names[] = $author_data->user_login;
+									$author_names[]  = $author_data->user_login;
+									$author_emails[] = $author_data->user_email;
 								}
 							}
 						}
@@ -718,6 +766,11 @@ class Newspack_Blocks {
 									'taxonomy' => 'author',
 									'terms'    => $author_names,
 								],
+								[
+									'field'    => 'name',
+									'taxonomy' => 'author',
+									'terms'    => $author_emails,
+								],
 							],
 						];
 					}
@@ -741,7 +794,7 @@ class Newspack_Blocks {
 	 * @param array  $data          Data to be passed into the template to be included.
 	 * @return string
 	 */
-	public static function template_inc( $template, $data = array() ) { //phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public static function template_inc( $template, $data = array() ) { //phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable, Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		if ( ! strpos( $template, '.php' ) ) {
 			$template = $template . '.php';
 		}
@@ -804,11 +857,11 @@ class Newspack_Blocks {
 			}
 		}
 
-		if ( class_exists( 'Newspack_Multibranded_Site\Customizations\Theme_Colors' ) ) {
-			$brands = get_the_terms( $post_id, 'brand' );
-			if ( ! empty( $brands ) ) {
-				foreach ( $brands as $brand ) {
-					$classes[] = 'brands-' . $brand->slug;
+		foreach ( self::get_custom_taxonomies() as $tax ) {
+			$terms = get_the_terms( $post_id, $tax['slug'] );
+			if ( ! empty( $terms ) ) {
+				foreach ( $terms as $term ) {
+					$classes[] = $term->taxonomy . '-' . $term->slug;
 				}
 			}
 		}
@@ -1443,6 +1496,33 @@ class Newspack_Blocks {
 			// if not, return white color.
 			return 'white';
 		}
+	}
+
+	/**
+	 * Get an array of allowed HTML attributes for sanitizing image markup.
+	 * For use with wp_kses: https://developer.wordpress.org/reference/functions/wp_kses/
+	 *
+	 * @return array
+	 */
+	public static function get_sanitized_image_attributes() {
+		return [
+			'img'      => [
+				'alt'      => true,
+				'class'    => true,
+				'data-*'   => true,
+				'decoding' => true,
+				'height'   => true,
+				'loading'  => true,
+				'sizes'    => true,
+				'src'      => true,
+				'srcset'   => true,
+				'width'    => true,
+			],
+			'noscript' => [],
+			'a'        => [
+				'href' => true,
+			],
+		];
 	}
 }
 Newspack_Blocks::init();

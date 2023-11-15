@@ -23,7 +23,6 @@ function newspack_blocks_render_block_carousel( $attributes ) {
 	$autoplay = isset( $attributes['autoplay'] ) ? $attributes['autoplay'] : false;
 	$delay    = isset( $attributes['delay'] ) ? absint( $attributes['delay'] ) : 3;
 	$authors  = isset( $attributes['authors'] ) ? $attributes['authors'] : array();
-	$is_amp   = Newspack_Blocks::is_amp();
 
 	$other = array();
 	if ( $autoplay ) {
@@ -50,12 +49,8 @@ function newspack_blocks_render_block_carousel( $attributes ) {
 
 			$article_classes = [
 				'post-has-image',
+				'swiper-slide',
 			];
-			if ( $is_amp ) {
-				$article_classes[] = 'amp-carousel-slide';
-			} else {
-				$article_classes[] = 'swiper-slide';
-			}
 
 			// Add classes based on the post's assigned categories and tags.
 			$article_classes[] = Newspack_Blocks::get_term_classes( $post_id );
@@ -73,6 +68,10 @@ function newspack_blocks_render_block_carousel( $attributes ) {
 			$hide_publish_date = apply_filters( 'newspack_listings_hide_publish_date', false ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			$show_author       = $attributes['showAuthor'] && ! $hide_author;
 			$show_date         = $attributes['showDate'] && ! $hide_publish_date;
+
+			// Validate the value of the "image fit" attribute.
+			$image_fits = [ 'cover', 'contain' ];
+			$image_fit  = in_array( $attributes['imageFit'], $image_fits, true ) ? $attributes['imageFit'] : $image_fits[0];
 			?>
 
 			<article data-post-id="<?php echo esc_attr( $post_id ); ?>" class="<?php echo esc_attr( implode( ' ', $article_classes ) . ' ' . $post_type ); ?>">
@@ -86,9 +85,9 @@ function newspack_blocks_render_block_carousel( $attributes ) {
 								the_post_thumbnail(
 									'large',
 									array(
-										'object-fit' => $attributes['imageFit'],
+										'object-fit' => $image_fit,
 										'layout'     => 'fill',
-										'class'      => 'contain' === $attributes['imageFit'] ? 'image-fit-contain' : 'image-fit-cover',
+										'class'      => 'contain' === $image_fit ? 'image-fit-contain' : 'image-fit-cover',
 										'alt'        => trim( wp_strip_all_tags( get_the_title( $post_id ) ) ),
 									)
 								);
@@ -111,36 +110,10 @@ function newspack_blocks_render_block_carousel( $attributes ) {
 									</span>
 									<?php
 								endif;
-								$category = false;
 
-								// Use Yoast primary category if set.
-								if ( class_exists( 'WPSEO_Primary_Term' ) ) {
-									$primary_term = new WPSEO_Primary_Term( 'category', $post_id );
-									$category_id  = $primary_term->get_primary_term();
-									if ( $category_id ) {
-										$category = get_term( $category_id );
-									}
-								}
-
-								if ( ! $category ) {
-									$categories_list = get_the_category();
-									if ( ! empty( $categories_list ) ) {
-										$category = $categories_list[0];
-									}
-								}
-
-								if ( $attributes['showCategory'] && $category && ( empty( $sponsors ) || Newspack_Blocks::newspack_display_sponsors_and_categories( $sponsors ) ) ) :
-									?>
-									<?php $category_link = get_category_link( $category->term_id ); ?>
-									<?php if ( ! empty( $category_link ) ) : ?>
-										<a href="<?php echo esc_url( get_category_link( $category->term_id ) ); ?>">
-									<?php endif; ?>
-										<?php echo esc_html( $category->name ); ?>
-									<?php if ( ! empty( $category_link ) ) : ?>
-									</a>
-										<?php
-										endif;
-									endif;
+								if ( $attributes['showCategory'] && ( empty( $sponsors ) || Newspack_Blocks::newspack_display_sponsors_and_categories( $sponsors ) ) ) :
+									echo wp_kses_post( newspack_blocks_format_categories( $post_id ) );
+								endif;
 								?>
 								</div>
 							<?php
@@ -204,21 +177,7 @@ function newspack_blocks_render_block_carousel( $attributes ) {
 								if ( $attributes['showAvatar'] ) :
 									echo wp_kses(
 										newspack_blocks_format_avatars( $authors ),
-										array(
-											'img'      => array(
-												'class'  => true,
-												'src'    => true,
-												'alt'    => true,
-												'width'  => true,
-												'height' => true,
-												'data-*' => true,
-												'srcset' => true,
-											),
-											'noscript' => array(),
-											'a'        => array(
-												'href' => true,
-											),
-										)
+										Newspack_Blocks::get_sanitized_image_attributes()
 									);
 								endif;
 								?>
@@ -259,57 +218,35 @@ function newspack_blocks_render_block_carousel( $attributes ) {
 		);
 	}
 
-	$slides_per_view = absint( ! empty( $attributes['slidesPerView'] ) ? $attributes['slidesPerView'] : 1 );
-	$slides_to_show  = $slides_per_view <= $counter ? $slides_per_view : $counter;
+	$slides_per_view = absint( $attributes['slidesPerView'] ?? 1 );
+	$aspect_ratio    = floatval( $attributes['aspectRatio'] ?? 0.75 );
 
-	if ( $is_amp ) {
-		$selector = sprintf(
-			'<amp-selector id="wp-block-newspack-carousel__amp-pagination__%1$d" class="swiper-pagination-bullets amp-pagination" on="select:wp-block-newspack-carousel__amp-carousel__%1$d.goToSlide(index=event.targetOption)" layout="container" %2$s>%3$s</amp-selector>',
-			absint( $newspack_blocks_carousel_id ),
-			$attributes['hideControls'] ? 'aria-hidden="true"' : '',
-			implode( '', $buttons )
-		);
+	$selector    = sprintf(
+		'<div class="swiper-pagination-bullets" %1$s>%2$s</div>',
+		$attributes['hideControls'] ? 'aria-hidden="true"' : '',
+		implode( '', $buttons )
+	);
+	$navigation  = 1 === $counter ? '' : sprintf(
+		'<button class="swiper-button swiper-button-prev" aria-label="%1$s" %3$s></button><button class="swiper-button swiper-button-next" aria-label="%2$s" %3$s></button>',
+		esc_attr__( 'Previous Slide', 'newspack-blocks' ),
+		esc_attr__( 'Next Slide', 'newspack-blocks' ),
+		$attributes['hideControls'] ? 'aria-hidden="true"' : ''
+	);
+	$carousel    = sprintf(
+		'<div class="swiper"><div class="swiper-wrapper">%s</div>%s</div>',
+		$slides,
+		$navigation
+	);
+	$autoplay_ui = $autoplay ? newspack_blocks_carousel_block_autoplay_ui( $newspack_blocks_carousel_id ) : '';
 
-		$carousel    = sprintf(
-			'<amp-base-carousel class="wp-block-newspack-carousel__amp-carousel" width="%1$s" height="%2$s" heights="%3$s" layout="responsive" snap="true" data-next-button-aria-label="%4$s" data-prev-button-aria-label="%5$s" controls="auto" loop="true" %6$s id="wp-block-newspack-carousel__amp-carousel__%7$s" on="slideChange:wp-block-newspack-carousel__amp-pagination__%7$s.toggle(index=event.index, value=true)" advance-count="1" visible-count="%8$s">%9$s</amp-base-carousel>',
-			$attributes['slidesPerView'] * 1,
-			$attributes['aspectRatio'],
-			'(min-width: 1168px) ' . ( $attributes['aspectRatio'] / $slides_to_show * 100 ) . '% !important, (min-width: 782px) ' . ( $slides_to_show > 1 ? ( $attributes['aspectRatio'] / 2 * 100 ) . '% !important' : ( $attributes['aspectRatio'] * 100 ) . '% !important' ) . ', ' . ( $attributes['aspectRatio'] * 100 ) . '% !important',
-			esc_attr__( 'Next Slide', 'newspack-blocks' ),
-			esc_attr__( 'Previous Slide', 'newspack-blocks' ),
-			$autoplay ? 'auto-advance="true" auto-advance-interval=' . esc_attr( $delay * 1000 ) : '',
-			absint( $newspack_blocks_carousel_id ),
-			'(min-width: 1168px) ' . $slides_to_show . ', (min-width: 782px) ' . ( $slides_to_show > 1 ? 2 : 1 ) . ', ' . 1,
-			$slides
-		);
-		$autoplay_ui = $autoplay ? newspack_blocks_carousel_block_autoplay_ui_amp( $newspack_blocks_carousel_id ) : '';
-	} else {
-		$selector    = sprintf(
-			'<div class="swiper-pagination-bullets amp-pagination" %1$s>%2$s</div>',
-			$attributes['hideControls'] ? 'aria-hidden="true"' : '',
-			implode( '', $buttons )
-		);
-		$navigation  = 1 === $counter ? '' : sprintf(
-			'<button class="swiper-button swiper-button-prev" aria-label="%1$s" %3$s></button><button class="swiper-button swiper-button-next" aria-label="%2$s" %3$s></button>',
-			esc_attr__( 'Previous Slide', 'newspack-blocks' ),
-			esc_attr__( 'Next Slide', 'newspack-blocks' ),
-			$attributes['hideControls'] ? 'aria-hidden="true"' : ''
-		);
-		$carousel    = sprintf(
-			'<div class="swiper"><div class="swiper-wrapper">%s</div>%s</div>',
-			$slides,
-			$navigation
-		);
-		$autoplay_ui = $autoplay ? newspack_blocks_carousel_block_autoplay_ui( $newspack_blocks_carousel_id ) : '';
-	}
 	$data_attributes = [
 		'data-current-post-id=' . $post_id,
-		'data-slides-per-view=' . $attributes['slidesPerView'],
+		'data-slides-per-view=' . esc_attr( $slides_per_view ),
 		'data-slide-count=' . $counter,
-		'data-aspect-ratio=' . $attributes['aspectRatio'],
+		'data-aspect-ratio=' . esc_attr( $aspect_ratio ),
 	];
 
-	if ( $autoplay && ! $is_amp ) {
+	if ( $autoplay ) {
 		$data_attributes[] = 'data-autoplay=1';
 		$data_attributes[] = sprintf( 'data-autoplay_delay=%s', esc_attr( $delay ) );
 	}
@@ -329,7 +266,7 @@ function newspack_blocks_render_block_carousel( $attributes ) {
 }
 
 /**
- * Generate autoplay play/pause UI for non-AMP requests.
+ * Generate autoplay play/pause UI.
  *
  * @return string Autoplay UI markup.
  */
@@ -342,37 +279,6 @@ function newspack_blocks_carousel_block_autoplay_ui() {
 }
 
 /**
- * Generate autoplay play/pause UI for AMP requests.
- *
- * @param int $block_ordinal The ordinal number of the block, used in unique ID.
- *
- * @return string Autoplay UI markup.
- */
-function newspack_blocks_carousel_block_autoplay_ui_amp( $block_ordinal = 0 ) {
-	$block_id        = sprintf(
-		'wp-block-newspack-carousel__%d',
-		absint( $block_ordinal )
-	);
-	$amp_carousel_id = sprintf(
-		'wp-block-newspack-carousel__amp-carousel__%d',
-		absint( $block_ordinal )
-	);
-	$autoplay_pause  = sprintf(
-		'<button aria-label="%s" class="amp-carousel-button-pause amp-carousel-button" on="tap:%s.toggleAutoplay(toggleOn=false),%s.toggleClass(class=wp-block-newspack-blocks-carousel__autoplay-playing,force=false)"></button>',
-		esc_attr__( 'Pause Slideshow', 'newspack-blocks' ),
-		esc_attr( $amp_carousel_id ),
-		esc_attr( $block_id )
-	);
-	$autoplay_play   = sprintf(
-		'<button aria-label="%s" class="amp-carousel-button-play amp-carousel-button" on="tap:%s.toggleAutoplay(toggleOn=true),%s.toggleClass(class=wp-block-newspack-blocks-carousel__autoplay-playing,force=true)"></button>',
-		esc_attr__( 'Play Slideshow', 'newspack-blocks' ),
-		esc_attr( $amp_carousel_id ),
-		esc_attr( $block_id )
-	);
-	return $autoplay_pause . $autoplay_play;
-}
-
-/**
  * Registers the `newspack-blocks/carousel` block on server.
  */
 function newspack_blocks_register_carousel() {
@@ -382,82 +288,93 @@ function newspack_blocks_register_carousel() {
 			'newspack_blocks_block_args',
 			array(
 				'attributes'      => array(
-					'className'     => array(
+					'className'        => array(
 						'type' => 'string',
 					),
-					'postsToShow'   => array(
+					'postsToShow'      => array(
 						'type'    => 'integer',
 						'default' => 3,
 					),
-					'authors'       => array(
+					'authors'          => array(
 						'type'    => 'array',
 						'default' => array(),
 						'items'   => array(
 							'type' => 'integer',
 						),
 					),
-					'categories'    => array(
+					'categories'       => array(
 						'type'    => 'array',
 						'default' => array(),
 						'items'   => array(
 							'type' => 'integer',
 						),
 					),
-					'tags'          => array(
+					'tags'             => array(
 						'type'    => 'array',
 						'default' => array(),
 						'items'   => array(
 							'type' => 'integer',
 						),
 					),
-					'brands'        => array(
+					'customTaxonomies' => array(
 						'type'    => 'array',
 						'default' => array(),
 						'items'   => array(
-							'type' => 'integer',
+							'type'       => 'object',
+							'properties' => array(
+								'slug'  => array(
+									'type' => 'string',
+								),
+								'terms' => array(
+									'type'  => 'array',
+									'items' => array(
+										'type' => 'integer',
+									),
+								),
+							),
 						),
 					),
-					'autoplay'      => array(
+					'autoplay'         => array(
 						'type'    => 'boolean',
 						'default' => false,
 					),
-					'delay'         => array(
+					'delay'            => array(
 						'type'    => 'integer',
 						'default' => 5,
 					),
-					'showAuthor'    => array(
+					'showAuthor'       => array(
 						'type'    => 'boolean',
 						'default' => true,
 					),
-					'showAvatar'    => array(
+					'showAvatar'       => array(
 						'type'    => 'boolean',
 						'default' => true,
 					),
-					'showCategory'  => array(
+					'showCategory'     => array(
 						'type'    => 'boolean',
 						'default' => false,
 					),
-					'showDate'      => array(
+					'showDate'         => array(
 						'type'    => 'boolean',
 						'default' => true,
 					),
-					'imageFit'      => array(
+					'imageFit'         => array(
 						'type'    => 'string',
 						'default' => 'cover',
 					),
-					'showTitle'     => array(
+					'showTitle'        => array(
 						'type'    => 'boolean',
 						'default' => true,
 					),
-					'slidesPerView' => array(
+					'slidesPerView'    => array(
 						'type'    => 'number',
 						'default' => 1,
 					),
-					'hideControls'  => array(
+					'hideControls'     => array(
 						'type'    => 'boolean',
 						'default' => false,
 					),
-					'aspectRatio'   => array(
+					'aspectRatio'      => array(
 						'type'    => 'number',
 						'default' => 0.75,
 					),

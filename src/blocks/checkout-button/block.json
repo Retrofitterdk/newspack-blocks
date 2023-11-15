@@ -11,6 +11,13 @@
 		"product": {
 			"type": "string"
 		},
+		"variation": {
+			"type": "string"
+		},
+		"is_variable": {
+			"type": "boolean",
+			"default": false
+		},
 		"price": {
 			"type": "string"
 		},
@@ -28,6 +35,19 @@
 		},
 		"gradient": {
 			"type": "string"
+		},
+		"afterSuccessBehavior": {
+			"type": "string"
+		},
+		"afterSuccessButtonLabel": {
+			"type": "string",
+			"default": "Continue browsing"
+		},
+		"afterSuccessURL": {
+			"type": "string"
+		},
+		"width": {
+			"type": "number"
 		}
 	},
 	"supports": {

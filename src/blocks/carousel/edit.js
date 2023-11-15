@@ -13,7 +13,7 @@ import { __ } from '@wordpress/i18n';
 import { InspectorControls } from '@wordpress/block-editor';
 // eslint-disable-next-line @wordpress/no-unsafe-wp-apis
 import { dateI18n, __experimentalGetSettings } from '@wordpress/date';
-import { Component, createRef, Fragment } from '@wordpress/element';
+import { Component, createRef, Fragment, RawHTML } from '@wordpress/element';
 import {
 	BaseControl,
 	Button,
@@ -47,16 +47,6 @@ import { postsBlockSelector, postsBlockDispatch, shouldReflow } from '../homepag
 
 // Max number of slides that can be shown at once.
 const MAX_NUMBER_OF_SLIDES = 6;
-
-// Check if multi-branded site
-let IS_MULTIBRANDED_SITE;
-if (
-	typeof window === 'object' &&
-	window.newspack_blocks_data &&
-	window.newspack_blocks_data.multibranded_sites_enabled
-) {
-	IS_MULTIBRANDED_SITE = true;
-}
 
 class Edit extends Component {
 	constructor( props ) {
@@ -160,7 +150,8 @@ class Edit extends Component {
 			authors,
 			autoplay,
 			categories,
-			brands,
+			includeSubcategories,
+			customTaxonomies,
 			delay,
 			hideControls,
 			imageFit,
@@ -244,13 +235,6 @@ class Edit extends Component {
 			},
 		];
 
-		const brandProps = IS_MULTIBRANDED_SITE
-			? {
-					brands,
-					onBrandsChange: value => setAttributes( { brands: value } ),
-			  }
-			: '';
-
 		return (
 			<Fragment>
 				<div className={ classes } ref={ this.carouselRef }>
@@ -266,14 +250,8 @@ class Edit extends Component {
 						<Fragment>
 							{ autoplay && (
 								<Fragment>
-									<button
-										className="amp-carousel-button-pause amp-carousel-button"
-										ref={ this.btnPauseRef }
-									/>
-									<button
-										className="amp-carousel-button-play amp-carousel-button"
-										ref={ this.btnPlayRef }
-									/>
+									<button ref={ this.btnPauseRef } />
+									<button ref={ this.btnPlayRef } />
 								</Fragment>
 							) }
 							<div className="swiper-wrapper">
@@ -319,7 +297,7 @@ class Edit extends Component {
 														{ showCategory &&
 															( ! post.newspack_post_sponsors ||
 																post.newspack_sponsors_show_categories ) && (
-																<a href="#">{ decodeEntities( post.newspack_category_info ) }</a>
+																<RawHTML>{ decodeEntities( post.newspack_category_info ) }</RawHTML>
 															) }
 													</div>
 												) }
@@ -361,16 +339,10 @@ class Edit extends Component {
 							</div>
 							{ ! hasNoPosts && ! hasOnePost && (
 								<>
-									<button
-										className="amp-carousel-button amp-carousel-button-prev swiper-button-prev"
-										ref={ this.btnPrevRef }
-									/>
-									<button
-										className="amp-carousel-button amp-carousel-button-next swiper-button-next"
-										ref={ this.btnNextRef }
-									/>
+									<button className="swiper-button-prev" ref={ this.btnPrevRef } />
+									<button className="swiper-button-next" ref={ this.btnNextRef } />
 									<div
-										className="swiper-pagination swiper-pagination-bullets amp-pagination"
+										className="swiper-pagination swiper-pagination-bullets"
 										ref={ this.paginationRef }
 									/>
 								</>
@@ -391,9 +363,14 @@ class Edit extends Component {
 								onAuthorsChange={ value => setAttributes( { authors: value } ) }
 								categories={ categories }
 								onCategoriesChange={ value => setAttributes( { categories: value } ) }
+								includeSubcategories={ includeSubcategories }
+								onIncludeSubcategoriesChange={ value =>
+									setAttributes( { includeSubcategories: value } )
+								}
 								tags={ tags }
 								onTagsChange={ value => setAttributes( { tags: value } ) }
-								{ ...brandProps }
+								onCustomTaxonomiesChange={ value => setAttributes( { customTaxonomies: value } ) }
+								customTaxonomies={ customTaxonomies }
 								specificMode={ specificMode }
 								onSpecificModeChange={ _specificMode =>
 									setAttributes( { specificMode: _specificMode } )
